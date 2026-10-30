@@ -1,0 +1,4 @@
+# Never upload: the mockup contains real student names and emails.
+reference/
+*.csv
+.DS_Store
