@@ -97,3 +97,11 @@ After the first donation the phone remembers grade, advisory and name (browser s
 ### Before and after the drive
 
 Dates come from the Config tab. Before the start date the donation form is replaced by "The drive starts January 19. See you then!" After the end date it is replaced by "The drive is over. Thank you! We collected [total] lb." The leaderboard stays visible either way. To extend the drive, change the end date cell in Config before the drive ends; the form, the pace line and the closing message all follow it.
+
+### If saving fails
+
+If the connection drops, the student sees "That didn't save. Your cans were not counted yet. Try again." The submit button is disabled while saving, so a double tap never makes two donations.
+
+### First-donation email
+
+Off until the technology office approves (Config switch, checked on the server against `first_emailed`, never a browser cookie). When on, it goes once per person, ever, after their first donation, and says only: "You've logged [cans] cans under the name [name]. If that wasn't you, email the One Ton Club." No confirm button, no other details. The Done screen shows a "check your school email" note only when the switch is on.

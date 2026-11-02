@@ -26,3 +26,4 @@ Written decisions win over the spec and mockup. `PLAN.md` (coming) is the source
 13. **Contests:** a fourth Sheet tab, Contests, one row per contest. Main boards always show; each contest has its own separate, time-limited board, visible only while it runs.
 14. **Remembered phone:** the cans screen says "Use your own phone. It remembers you next time." and has a small "Not you? Change name" link, mainly to recover from tapping the wrong name.
 15. **Outside the drive dates:** the donation form shows a "starts January 19" message before the start and a thank-you message with the total after the end. The end date may be extended; it lives in Config, so extending is a one-cell change.
+16. **First-donation email has no button.** It only informs (name, cans, who to contact). No confirmFirstDonation endpoint and no "unconfirmed addresses" list. Matches what the technology office was told.
