@@ -18,3 +18,4 @@ Written decisions win over the spec and mockup. `PLAN.md` (coming) is the source
 5. **Hallway screen:** one big number with a date stamp ("as of ..."), not a full leaderboard. Expected weekly screenshot; to-do: confirm with whoever runs the Learning Commons slideshow how often they can swap the image.
 6. **Organizer view:** the private Google Sheet, not a web page. Conditional formatting turns flagged rows red (25+ cans, or three or more entries from one person within ten minutes). No `?admin=1` page in version one.
 7. **Display unit:** pounds everywhere on screen. Students still log cans. The pounds-per-can ratio lives in Config (starting at 1) and gets corrected once the food bank weighs the first pickup.
+8. **What wins when documents disagree:** these written decisions (and `PLAN.md`, once written) win. The mockup is only a picture of the look and feel. The spec's line "the mockup is right" no longer applies.
