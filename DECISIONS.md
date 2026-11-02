@@ -17,3 +17,4 @@ Written decisions win over the spec and mockup. `PLAN.md` (coming) is the source
 4. **Who has already been emailed:** a "First emailed" date column on the Roster tab. The server checks it before sending, never a browser cookie.
 5. **Hallway screen:** one big number with a date stamp ("as of ..."), not a full leaderboard. Expected weekly screenshot; to-do: confirm with whoever runs the Learning Commons slideshow how often they can swap the image.
 6. **Organizer view:** the private Google Sheet, not a web page. Conditional formatting turns flagged rows red (25+ cans, or three or more entries from one person within ten minutes). No `?admin=1` page in version one.
+7. **Display unit:** pounds everywhere on screen. Students still log cans. The pounds-per-can ratio lives in Config (starting at 1) and gets corrected once the food bank weighs the first pickup.
