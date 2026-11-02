@@ -68,3 +68,28 @@ One row per contest. Adding a contest means adding a row; no code change. The ma
 | `description` | One line shown under the contest name. |
 
 Every contest board is the same `standings(scope, startDate, endDate, filter)` call. Because every donation has a timestamp, a contest can even be added after the fact.
+
+## 2. The donation flow
+
+One QR code for the whole school, on every bin. It opens the donation page. No login.
+
+### Screens
+
+1. **Grade.** Four big buttons (9, 10, 11, 12). A smaller "Faculty and staff" link.
+2. **Advisory.** The advisories in that grade.
+3. **Name.** The people in that advisory, with a search box. Names come from the roster only; no typing a new name. Staff not on the list see "Not on the list? Tell the One Ton Club."
+4. **Cans.** Number box, + and − buttons, quick values 1, 5, 10, 15, 20. Note: "50 cans max per entry. Brought more? Log it in two entries." Honesty line above the button: "Please count only what you actually brought." The box does not rewrite itself while typing; it tidies up when the student leaves it.
+5. **Done.** "You're in." Rank before and after, how many people they passed, where their advisory now stands. A quiet "Something wrong with this entry?" link that opens a prefilled email to the organizers.
+
+### Repeat donors
+
+After the first donation the phone remembers grade, advisory and name (browser storage only). Next time the student lands straight on screen 4 with their name shown. That screen says "Use your own phone. It remembers you next time." and has a small "Not you? Change name" link that goes back to screen 1.
+
+### Messages on the cans screen
+
+| Situation | What happens |
+|---|---|
+| Empty box | Blocked: "How many cans?" Never logged as 1. |
+| 20 to 50 | Confirm first: "20 cans, nice. Just checking, is that right?" with "Yes" and "Let me fix it". (Number matches what they typed.) |
+| 25 to 50 | Same confirm; the row is also silently flagged. |
+| Over 50 | Refused: "50 is the most you can log at once. Log 50 now and the rest as a second entry." |
