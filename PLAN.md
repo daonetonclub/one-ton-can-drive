@@ -93,3 +93,7 @@ After the first donation the phone remembers grade, advisory and name (browser s
 | 20 to 50 | Confirm first: "20 cans, nice. Just checking, is that right?" with "Yes" and "Let me fix it". (Number matches what they typed.) |
 | 25 to 50 | Same confirm; the row is also silently flagged. |
 | Over 50 | Refused: "50 is the most you can log at once. Log 50 now and the rest as a second entry." |
+
+### Before and after the drive
+
+Dates come from the Config tab. Before the start date the donation form is replaced by "The drive starts January 19. See you then!" After the end date it is replaced by "The drive is over. Thank you! We collected [total] lb." The leaderboard stays visible either way. To extend the drive, change the end date cell in Config before the drive ends; the form, the pace line and the closing message all follow it.
