@@ -39,7 +39,7 @@ Ben is a high school student building the One Ton Can Drive website for the One 
 
 ## Known Apps Script traps
 
-- Use clasp so Claude Code pushes code to Apps Script directly. Ben may need to turn on the Apps Script API in the club Google account's settings (daonetonclub@gmail.com).
+- Use clasp so Claude Code pushes code to Apps Script directly. The Apps Script API is already turned on in the club Google account (daonetonclub@gmail.com).
 - POSTing JSON to an Apps Script web app from the browser fails on CORS. Send the body as text/plain and parse it on the server.
 - A "New deployment" changes the web app URL and breaks the site. Always update the existing deployment.
 - Cache computed standings with CacheService for 5 minutes.
