@@ -53,3 +53,18 @@ Settings changed without touching code.
 | Full names | Off (first name + last initial) until written approval |
 | First-donation email | Off until the technology office approves |
 | Bin locations | To be decided with facilities, December |
+
+### Contests tab
+
+One row per contest. Adding a contest means adding a row; no code change. The main boards (grades, advisories, top students, faculty) always show. Each contest gets its own separate board, shown only while it is running.
+
+| Column | What it holds |
+|---|---|
+| `name` | What students see, e.g. "Most cans this week". |
+| `start` | First day counted. |
+| `end` | Last day counted. |
+| `scope` | What competes: `student`, `advisory` or `grade`. |
+| `filter` | Who is in it, e.g. `all` or `9,10`. |
+| `description` | One line shown under the contest name. |
+
+Every contest board is the same `standings(scope, startDate, endDate, filter)` call. Because every donation has a timestamp, a contest can even be added after the fact.
