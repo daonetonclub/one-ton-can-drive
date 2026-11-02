@@ -29,3 +29,4 @@ Written decisions win over the spec and mockup. `PLAN.md` (coming) is the source
 16. **First-donation email has no button.** It only informs (name, cans, who to contact). No confirmFirstDonation endpoint and no "unconfirmed addresses" list. Matches what the technology office was told.
 17. **Top students board:** top 10. Everyone else uses Find me.
 18. **Ties at the top-10 cut:** everyone tied for 10th is shown, even if the list runs past 10.
+19. **Order of extras:** Find me, faculty path and board, first-donation email (if approved), hallway screen, "Give money" page (once the school confirms). Each optional; stop when time runs out.

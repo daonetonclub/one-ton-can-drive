@@ -119,3 +119,53 @@ Public and read-only. Works on a phone and a laptop. Every number is computed fr
 - **Ranking:** ties share a place (standard competition ranking: 1, 2, 2, 4). "Move up" messages count to the next distinct total: "2 more cans puts you at #35, past 14 people."
 - **Find me:** its own tab. Search finds any student or staff member, including those who haven't donated. Shows rank in advisory, grade and school, full donation history, and what it would take to move up.
 - **Names:** first name + last initial unless the Config full-names switch is on. The switch applies everywhere, including Find me.
+
+## 4. Extras
+
+Built after the main donation page and leaderboard, in this order. Each is optional; if time runs out in December, stop where we are.
+
+1. **Find me** (see section 3).
+2. **Faculty path and faculty board.** The small "Faculty and staff" link on the grade screen, then pick your name from the faculty list. Faculty donations count toward the ton but only on the faculty board.
+3. **First-donation email.** Only if the technology office approves (see section 2).
+4. **Hallway screen** at `?tv=1`. One big number in pounds with a date stamp ("Standings as of Feb 14, day 27 of 45"). Never claims to update live. Screenshot sent to the Learning Commons, expected weekly.
+5. **"Give money" page.** Only once the school confirms how money is collected. Links to the school's official page; never shows or collects payment details.
+
+Not in version one: the `?admin=1` organizer page (the Sheet does this job), a participation leaderboard section, a share card, a recent-donations ticker, a weekly email to advisors, organizer bulk entry, typed-in names.
+
+## 5. Phases
+
+Each phase needs its tests passing, and Ben checking it on his phone, before the next one starts. The detailed "how" of each phase is planned at its start.
+
+### Phase 1: back end
+- **Steps:** the Sheet with Roster (fake 20-person roster), Donations, Config and Contests tabs; clasp set up; Apps Script functions getRoster, submitDonation, getLeaderboard and one `standings(scope, startDate, endDate, filter)`; every Donations write inside LockService; rank before and after computed in one server call.
+- **Tests:** ranking math with lots of ties ("2 more cans puts you at #35, past 14 people"); 20 donations at the same moment make exactly 20 rows; the roster response has no emails; 51 cans is refused; an empty or zero amount is refused; donations outside the Config dates are refused.
+- **Done when:** a donation sent through a web address appears as a row in the Sheet.
+
+### Phase 2: donation page
+- **Steps:** grade, advisory, name, cans, done screens; remember the student on their phone; "Not you? Change name"; the cans box that doesn't fight the user; the "just checking" step at 20; the over-50 message; the failed-save message; before/after-the-drive messages; hosted on GitHub Pages.
+- **Tests:** browser tests for the cans box (empty blocked, 20 asks to confirm, 51 refused); a double tap makes one donation; Ben donates on his phone, closes the tab, scans again and lands on the cans screen with his name.
+- **Done when:** that works on Ben's phone.
+
+### Phase 3: leaderboard
+- **Steps:** tracker, pace line, "everyone brings five", disclosure line, grade/advisory/top-10/faculty boards with drill-down, contest boards, the name switch.
+- **Tests:** a fake data set with known answers (lots of ties, including a tie at #10) checked against every board; contest boards appear only inside their dates; with the switch off, no full name appears anywhere; checked on a phone and a laptop.
+- **Done when:** Ben has checked every board on his phone and they match the known answers.
+
+### Phase 4: extras
+- In the order in section 4. First-donation email test: donate from a phone and a laptop under the same name and get exactly one email.
+
+### Phase 5: real data and rehearsal (by about December 12)
+- **Steps:** the real roster goes into the Sheet only; print the QR code and scan it across a room; dry run with 5 to 10 real students; fix what breaks; teach one other member to fix a row in the Sheet.
+- **Tests:** search the GitHub code for any real student name or email and find none; a second dry run with no new problems.
+
+### Phase 6: freeze (mid December)
+- Fill in Config and Contests; print posters and bin signs; agree the screenshot routine with the Learning Commons. Bug fixes only after this, no new features.
+
+## Still waiting on
+
+- Roster file from the registrar (being checked with the technology office and the Dean's office).
+- Technology office answer on the first-donation email and a da.org account.
+- Written approval for full names (ask Ms. Soletro who gives it).
+- How the school collects money (for the "Give money" page).
+- How often the Learning Commons can swap the hallway screenshot.
+- Bin locations (facilities, December) and the food bank partner (club vote, mid-November).
