@@ -114,7 +114,7 @@ Public and read-only. Works on a phone and a laptop. Every number is computed fr
 - **Pace line:** "[X] lb a day from here reaches [goal] by [end date]. Yesterday the school brought in [Y]." Turns amber when yesterday fell short. Follows the Config end date.
 - **"Everyone brings five":** "There are [student count] of us. If everyone brings 5, we hit the ton." Computed from roster size and goal, never typed in. Counts students only.
 - **Disclosure line** under the tracker: how much of the total came from faculty (and from the money pool, if any pool rows ever count).
-- **Boards:** Grades, Advisories (with "7 of 12 have donated"), Top students (top 10), Faculty (separate; faculty never count on student, advisory or grade boards). Tapping a grade opens its advisories; tapping an advisory opens its students. The back link remembers the route.
+- **Boards:** Grades, Advisories (with "7 of 12 have donated"), Top students (top 10), Faculty (separate; faculty never count on student, advisory or grade boards). If people are tied for 10th, everyone tied is shown, so the list can run past 10. Tapping a grade opens its advisories; tapping an advisory opens its students. The back link remembers the route.
 - **Contest boards:** one per running contest, from the Contests tab.
 - **Ranking:** ties share a place (standard competition ranking: 1, 2, 2, 4). "Move up" messages count to the next distinct total: "2 more cans puts you at #35, past 14 people."
 - **Find me:** its own tab. Search finds any student or staff member, including those who haven't donated. Shows rank in advisory, grade and school, full donation history, and what it would take to move up.
