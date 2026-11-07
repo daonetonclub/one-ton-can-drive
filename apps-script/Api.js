@@ -80,22 +80,20 @@ function submitDonation(personId, cansValue) {
     return { ok: false, error: 'unknown_person', message: 'We could not find that name. Pick it from the list again.' };
   }
 
-  // Inside the lock: read the log, then write the new row. Nothing else can
-  // write in between, so "before" is the log just read and "after" is that
-  // log plus this row. Only the Sheet work is locked; the ranking math runs
-  // after the lock is released, so a crowd at an assembly doesn't queue up.
+  // The flag looks at this person's recent entries. It is a soft check, so it
+  // is read before the lock.
+  var now = new Date();
+  var recent = readDonations()
+    .filter(function (d) { return d.personId === person.id; })
+    .map(function (d) { return d.timestamp; });
+  var flag = flagReason(check.cans, now.getTime(), recent);
+
+  // Only the write is locked, so a crowd at an assembly moves through quickly.
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) {
     return { ok: false, error: 'busy', message: "That didn't save. Your cans were not counted yet. Try again." };
   }
-  var existing;
-  var now = new Date();
   try {
-    existing = readDonations();
-    var recent = existing
-      .filter(function (d) { return d.personId === person.id; })
-      .map(function (d) { return d.timestamp; });
-    var flag = flagReason(check.cans, now.getTime(), recent);
     tab(TAB.donations).appendRow([now, person.id, person.name, check.cans, person.type, '', flag, false]);
     SpreadsheetApp.flush();
   } finally {
@@ -103,10 +101,17 @@ function submitDonation(personId, cansValue) {
   }
   CacheService.getScriptCache().remove(CACHE_KEY);
 
-  var added = { timestamp: now.getTime(), day: dayKey(now), personId: person.id,
-                cans: check.cans, source: person.type };
-  var before = snapshot(existing, roster, person, config);
-  var after = snapshot(existing.concat([added]), roster, person, config);
+  // "After" is the log as it now stands. "Before" is exactly that log without
+  // this donation, so the two numbers always compare the same moment.
+  var afterLog = readDonations();
+  var mine = -1;
+  afterLog.forEach(function (d, i) {
+    if (d.personId !== person.id || d.cans !== check.cans) return;
+    if (mine === -1 || Math.abs(d.timestamp - now.getTime()) < Math.abs(afterLog[mine].timestamp - now.getTime())) mine = i;
+  });
+  var beforeLog = afterLog.filter(function (d, i) { return i !== mine; });
+  var before = snapshot(beforeLog, roster, person, config);
+  var after = snapshot(afterLog, roster, person, config);
 
   return {
     ok: true,
