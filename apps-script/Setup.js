@@ -30,6 +30,8 @@ var FAKE_ROSTER = [
 function setupSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   PropertiesService.getScriptProperties().setProperty('SPREADSHEET_ID', ss.getId());
+  // Show times in the school's time zone, the same one the program uses.
+  ss.setSpreadsheetTimeZone(Session.getScriptTimeZone());
 
   // A new Sheet starts with one empty tab; reuse it as Roster.
   var first = ss.getSheets()[0];
@@ -43,7 +45,7 @@ function setupSheet() {
 
   var donations = makeTab(ss, TAB.donations, DONATION_COLUMNS);
   donations.getRange('A2:A').setNumberFormat('yyyy-mm-dd hh:mm:ss');
-  donations.getRange('H2:H').insertCheckboxes();
+  reviewedCheckboxes(donations);
   if (donations.getConditionalFormatRules().length === 0) {
     // Flagged and not yet reviewed: red. This is the organizer view.
     var rule = SpreadsheetApp.newConditionalFormatRule()
@@ -70,6 +72,42 @@ function setupSheet() {
   }
 
   makeTab(ss, TAB.contests, CONTEST_COLUMNS);
+}
+
+// "reviewed" shows a checkbox on every donation row. This uses a rule rather
+// than filling the column with unticked boxes: filled boxes count as used
+// rows, and new donations would land below row 1,000.
+function reviewedCheckboxes(donations) {
+  var rule = SpreadsheetApp.newDataValidation().requireCheckbox().build();
+  donations.getRange('H2:H').setDataValidation(rule);
+}
+
+// One-time repair for the first setup, which filled the reviewed column with
+// about 1,000 empty checkboxes. Moves every donation row up to start at row 2,
+// keeps all of them, and sets the Sheet to the school's time zone. Safe to run
+// more than once.
+function tidyDonations() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  ss.setSpreadsheetTimeZone(Session.getScriptTimeZone());
+  var donations = tab(TAB.donations);
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var last = donations.getLastRow();
+    if (last < 2) return;
+    var range = donations.getRange(2, 1, last - 1, DONATION_COLUMNS.length);
+    var kept = range.getValues().filter(function (row) {
+      return row.slice(0, 7).some(function (cell) { return cell !== ''; });
+    });
+    range.clearContent();
+    range.clearDataValidations();
+    if (kept.length) donations.getRange(2, 1, kept.length, DONATION_COLUMNS.length).setValues(kept);
+    reviewedCheckboxes(donations);
+    SpreadsheetApp.flush();
+    console.log('Kept ' + kept.length + ' donation rows, starting at row 2.');
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function makeTab(ss, name, columns) {
