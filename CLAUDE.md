@@ -47,7 +47,8 @@ Ben is a high school student building the One Ton Can Drive website for the One 
 - Don't use `appendRow` on the Donations tab. Write under the last row with a timestamp (`nextDonationRow`), and put the "reviewed" checkbox only on that row. Checkboxes on empty rows make Google treat them as used.
 - clasp 3.4.1, signed in as daonetonclub@gmail.com with `clasp login --no-localhost` (Ben pastes back the `http://localhost:8888/...` address). The sign-in file `~/.clasprc.json` lives only in the workspace; a new workspace needs a new sign-in.
 - After `clasp push`, update the existing deployment: `npx clasp update-deployment AKfycbwc4fukEa6Jh_hT4Qhl1_Bt3mZvgFsDJb1kU7FMVnyzrSAeZZrEqOAxVerIdW_zchk`. Never `create-deployment` again.
-- Functions that change the Sheet's layout (`setupSheet`, `tidyDonations`) are run by Ben from the Apps Script editor, not from the web address.
+- Functions that change the Sheet's layout or fix cells (`setupSheet`, `tidyDonations`, `fixConfigCells`) are run by Ben from the Apps Script editor, not from the web address.
+- Sheets turns "500,1000,1500,2000" into one number. Any list in a cell must be written as plain text (`setNumberFormat('@')`). Set the Sheet's time zone before writing any date, or the date shifts by a day.
 - Claude can read a tab read-only with the clasp sign-in (Sheets "gviz" CSV export) instead of asking Ben to scroll. Only ever on the fake data; once real students are in, ask first.
 
 ## Phases

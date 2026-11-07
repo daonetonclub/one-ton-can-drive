@@ -2,7 +2,7 @@
 
 This file is the source of truth for what we are building, and the living version of the spec. It wins over the original spec PDF and the mockup, which are kept unchanged for reference. Decisions and their reasons are in `DECISIONS.md`. Every change to the plan is logged with a date in "What changed" at the bottom.
 
-**Status:** Phases 1 and 2 done (7 November 2026). The donation page is live at https://daonetonclub.github.io/one-ton-can-drive/. Next: Phase 3.
+**Status:** Phases 1 to 3 done (7 November 2026). Live: donation page https://daonetonclub.github.io/one-ton-can-drive/ and leaderboard https://daonetonclub.github.io/one-ton-can-drive/leaderboard.html. Next: Phase 4.
 
 ## 1. The Google Sheet
 
@@ -157,9 +157,12 @@ Each phase needs its tests passing, and Ben checking it on his phone, before the
 - **Still not tested live:** refusal outside the drive dates (needs the Config start date moved for a minute).
 
 ### Phase 3: leaderboard
-- **Steps:** tracker, pace line, "everyone brings five", disclosure line, grade/advisory/top-10/faculty boards with drill-down, contest boards, the name switch.
-- **Tests:** a fake data set with known answers (lots of ties, including a tie at #10) checked against every board; contest boards appear only inside their dates; with the switch off, no full name appears anywhere; checked on a phone and a laptop.
-- **Done when:** Ben has checked every board on his phone and they match the known answers.
+**Done 7 November 2026.**
+- **Built:** `docs/leaderboard.html`. The tracker in pounds with Config milestone marks, and the bar keeps going past the goal. The pace line turns amber when yesterday fell short, and shows no "yesterday" on the first day. "There are N of us. If everyone brings X, we hit the ton." "Includes X lb from faculty and staff." Tabs for Grades, Advisories, Top students (top 10 plus everyone tied) and Faculty, plus one tab per running contest. Drill-down from grade to advisories to students, with the back link returning the same way. Refreshes every 2 minutes. Linked from the donation page header and its done screen.
+- **Server:** the leaderboard math moved into one pure function, `buildLeaderboard` (`apps-script/Standings.js`), so every board can be tested offline. `getLeaderboard` reads the Sheet, calls it and caches for 5 minutes. The reply now includes every student's total for drill-down. Names go through the switch, and there are never emails.
+- **Tests passing:** 11 known-answer tests for every board (`tests/leaderboard.test.js`), including a tie at #10, contests only inside their dates, the name switch both ways and pounds per can. 9 browser tests for the page (`tests/leaderboard-page.test.js`), including past-the-goal, amber, drill-down and back, contest tabs, no email or full name, and no sideways scrolling at phone width. 50 offline tests in all, plus 5 live.
+- **Checked by Ben:** every board on his phone and a laptop matched the numbers read from the Sheet.
+- **Not checked live yet:** a contest tab (the Contests tab is empty). Optional: add one row to see it.
 
 ### Phase 4: extras
 - In the order in section 4. First-donation email test: donate from a phone and a laptop under the same name and get exactly one email.
@@ -183,6 +186,13 @@ Each phase needs its tests passing, and Ben checking it on his phone, before the
 ## What changed
 
 Newest first. Every change to this plan gets a dated line here, saying what changed and why.
+
+- **7 November 2026, Phase 3 finished.**
+  - Two Config cells were wrong since setup and were repaired with a one-time `fixConfigCells`. **Milestones:** Sheets read "500,1000,1500,2000" as one big number, so setup now writes it as plain text ("500, 1000, 1500, 2000"). **End date:** it was written while the Sheet was on Pacific time and became March 3 when the Sheet moved to Eastern. It's back to 4 March 2027. The leaderboard found both.
+  - The disclosure line shows faculty pounds only. Pool rows never count toward the total (spec), so "includes" would be wrong for them.
+  - The pace line counts only donations inside the drive dates, and on the first day leaves out "yesterday" (and the amber colour), since there is no yesterday yet.
+  - Inside a drill-down, grades, advisories and students are ranked within that list (ties still share a place).
+  - Student and faculty contest boards show the top 10 plus ties. Advisory and grade contests show every row.
 
 - **7 November 2026, Phase 2 finished.**
   - One-time save codes added (not in the original plan): the plan said a double tap must never make two donations. Disabling the button covers taps, but not a retry after the connection drops mid-save. The server now remembers each save's code for 10 minutes. No new Sheet column.
