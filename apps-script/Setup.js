@@ -45,7 +45,6 @@ function setupSheet() {
 
   var donations = makeTab(ss, TAB.donations, DONATION_COLUMNS);
   donations.getRange('A2:A').setNumberFormat('yyyy-mm-dd hh:mm:ss');
-  reviewedCheckboxes(donations);
   if (donations.getConditionalFormatRules().length === 0) {
     // Flagged and not yet reviewed: red. This is the organizer view.
     var rule = SpreadsheetApp.newConditionalFormatRule()
@@ -74,16 +73,16 @@ function setupSheet() {
   makeTab(ss, TAB.contests, CONTEST_COLUMNS);
 }
 
-// "reviewed" shows a checkbox on every donation row. This uses a rule rather
-// than filling the column with unticked boxes: filled boxes count as used
-// rows, and new donations would land below row 1,000.
-function reviewedCheckboxes(donations) {
+// "reviewed" gets a checkbox only on rows that hold a donation. Checkboxes
+// on empty rows make Google treat those rows as used.
+function reviewedCheckboxes(donations, firstRow, count) {
+  if (count < 1) return;
   var rule = SpreadsheetApp.newDataValidation().requireCheckbox().build();
-  donations.getRange('H2:H').setDataValidation(rule);
+  donations.getRange(firstRow, 8, count, 1).setDataValidation(rule);
 }
 
-// One-time repair for the first setup, which filled the reviewed column with
-// about 1,000 empty checkboxes. Moves every donation row up to start at row 2,
+// Repair for the first setup, which put checkboxes on about 1,000 empty
+// rows. Moves every donation row up to start at row 2,
 // keeps all of them, and sets the Sheet to the school's time zone. Safe to run
 // more than once.
 function tidyDonations() {
@@ -93,16 +92,17 @@ function tidyDonations() {
   var lock = LockService.getScriptLock();
   lock.waitLock(30000);
   try {
-    var last = donations.getLastRow();
-    if (last < 2) return;
-    var range = donations.getRange(2, 1, last - 1, DONATION_COLUMNS.length);
+    var height = donations.getMaxRows() - 1;
+    if (height < 1) return;
+    var range = donations.getRange(2, 1, height, DONATION_COLUMNS.length);
     var kept = range.getValues().filter(function (row) {
       return row.slice(0, 7).some(function (cell) { return cell !== ''; });
     });
-    range.clearContent();
+    // Rules first, then values, so emptied checkbox cells end up truly empty.
     range.clearDataValidations();
+    range.clearContent();
     if (kept.length) donations.getRange(2, 1, kept.length, DONATION_COLUMNS.length).setValues(kept);
-    reviewedCheckboxes(donations);
+    reviewedCheckboxes(donations, 2, kept.length);
     SpreadsheetApp.flush();
     console.log('Kept ' + kept.length + ' donation rows, starting at row 2.');
   } finally {
