@@ -27,6 +27,23 @@ function bodyRows(sheet) {
   return sheet.getRange(2, 1, last - 1, sheet.getLastColumn()).getValues();
 }
 
+// The row under the last donation, found by its timestamp. Not appendRow:
+// checkboxes and formatting can make Google treat empty rows as used, and
+// appendRow would then write far below the real log.
+function nextDonationRow(sheet) {
+  var height = sheet.getMaxRows() - 1;
+  var next = 2;
+  if (height >= 1) {
+    var times = sheet.getRange(2, 1, height, 1).getValues();
+    for (var i = times.length - 1; i >= 0; i--) {
+      if (times[i][0] !== '') { next = i + 3; break; }
+    }
+  }
+  // Out of rows at the bottom of the tab: add some more.
+  if (next > sheet.getMaxRows()) sheet.insertRowsAfter(sheet.getMaxRows(), 100);
+  return next;
+}
+
 function dayKey(date) {
   return Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
 }

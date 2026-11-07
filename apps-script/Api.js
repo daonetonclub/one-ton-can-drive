@@ -94,7 +94,9 @@ function submitDonation(personId, cansValue) {
     return { ok: false, error: 'busy', message: "That didn't save. Your cans were not counted yet. Try again." };
   }
   try {
-    tab(TAB.donations).appendRow([now, person.id, person.name, check.cans, person.type, '', flag, false]);
+    var sheet = tab(TAB.donations);
+    sheet.getRange(nextDonationRow(sheet), 1, 1, DONATION_COLUMNS.length)
+      .setValues([[now, person.id, person.name, check.cans, person.type, '', flag, false]]);
     SpreadsheetApp.flush();
   } finally {
     lock.releaseLock();
