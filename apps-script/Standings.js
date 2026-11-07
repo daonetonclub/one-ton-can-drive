@@ -1,0 +1,172 @@
+// Pure ranking math. No Sheets calls in this file, so the same code runs in
+// Apps Script and in the Node tests (tests/standings.test.js).
+//
+// A donation here is { timestamp, day, personId, cans, source }, where day is
+// "YYYY-MM-DD" in the school's time zone. A person is a Roster row:
+// { id, name, grade, advisory, type }.
+
+// Standard competition ranking: equal totals share a place (1, 2, 2, 4).
+// rows must already be sorted by total, highest first.
+function assignRanks(rows) {
+  var rank = 0;
+  for (var i = 0; i < rows.length; i++) {
+    if (i === 0 || rows[i].total !== rows[i - 1].total) rank = i + 1;
+    rows[i].rank = rank;
+  }
+  return rows;
+}
+
+function sortByTotal(rows) {
+  return rows.sort(function (a, b) {
+    return b.total - a.total || String(a.name).localeCompare(String(b.name));
+  });
+}
+
+// "all", "", or a comma list of grades such as "9,10".
+function parseFilter(filter) {
+  var text = String(filter == null ? '' : filter).trim().toLowerCase();
+  if (text === '' || text === 'all') return null;
+  return text.split(',').map(function (g) { return Number(g.trim()); });
+}
+
+function inWindow(d, startDay, endDay) {
+  return (!startDay || d.day >= startDay) && (!endDay || d.day <= endDay);
+}
+
+// The one function behind every board and every contest.
+//   scope: "student", "faculty", "advisory", "grade" or "school"
+//   startDay / endDay: "YYYY-MM-DD", inclusive; empty means no limit
+//   filter: "all" or a grade list like "9,10"
+// Student, advisory and grade boards count student rows only. Faculty rows
+// only count on the faculty board. Pool rows count on no board.
+function standings(donations, roster, scope, startDay, endDay, filter) {
+  var grades = parseFilter(filter);
+  var counted = donations.filter(function (d) { return inWindow(d, startDay, endDay); });
+
+  if (scope === 'school') {
+    var totals = { student: 0, faculty: 0, pool: 0 };
+    counted.forEach(function (d) {
+      if (totals[d.source] !== undefined) totals[d.source] += d.cans;
+    });
+    return { student: totals.student, faculty: totals.faculty, pool: totals.pool,
+             tonCans: totals.student + totals.faculty };
+  }
+
+  var source = scope === 'faculty' ? 'faculty' : 'student';
+  var people = roster.filter(function (p) {
+    if (p.type !== source) return false;
+    return !grades || grades.indexOf(Number(p.grade)) !== -1;
+  });
+  var byPerson = {};
+  people.forEach(function (p) { byPerson[p.id] = 0; });
+  counted.forEach(function (d) {
+    if (d.source === source && byPerson[d.personId] !== undefined) byPerson[d.personId] += d.cans;
+  });
+
+  if (scope === 'student' || scope === 'faculty') {
+    return assignRanks(sortByTotal(people.map(function (p) {
+      return { id: p.id, name: p.name, grade: p.grade, advisory: p.advisory, total: byPerson[p.id] };
+    })));
+  }
+
+  var key = scope === 'advisory' ? 'advisory' : 'grade';
+  var groups = {};
+  people.forEach(function (p) {
+    var k = String(p[key]);
+    if (!groups[k]) groups[k] = { name: k, grade: p.grade, total: 0, donors: 0, size: 0 };
+    groups[k].size += 1;
+    groups[k].total += byPerson[p.id];
+    if (byPerson[p.id] > 0) groups[k].donors += 1;
+  });
+  return assignRanks(sortByTotal(Object.keys(groups).map(function (k) { return groups[k]; })));
+}
+
+// Top n with everyone tied at the cut included, so the list can run past n.
+// People with nothing donated never appear on a top board.
+function topWithTies(rows, n) {
+  return rows.filter(function (r) { return r.total > 0 && r.rank <= n; });
+}
+
+function findRow(rows, key, value) {
+  for (var i = 0; i < rows.length; i++) if (rows[i][key] === value) return rows[i];
+  return null;
+}
+
+// What it takes to move up: the next distinct total above this person.
+// Returns null for someone already in first place.
+//   { cans, rank, passes } -> "2 more cans puts you at #35, past 14 people."
+// passes counts everyone you would no longer be level with or behind:
+// people tied with you now, plus anyone between you and the next total.
+function moveUp(rows, id) {
+  var me = findRow(rows, 'id', id);
+  if (!me) return null;
+  var next = null;
+  rows.forEach(function (r) {
+    if (r.total > me.total && (next === null || r.total < next.total)) next = r;
+  });
+  if (!next) return null;
+  var passes = rows.filter(function (r) {
+    return r.id !== id && r.total >= me.total && r.total < next.total;
+  }).length;
+  return { cans: next.total - me.total, rank: next.rank, passes: passes };
+}
+
+// People who were level with or ahead of you before, and are behind you now.
+function countPassed(before, after, id) {
+  var meBefore = findRow(before, 'id', id);
+  var meAfter = findRow(after, 'id', id);
+  if (!meBefore || !meAfter) return 0;
+  var passed = 0;
+  after.forEach(function (r) {
+    if (r.id === id) return;
+    var was = findRow(before, 'id', r.id);
+    if (was && was.total >= meBefore.total && r.total < meAfter.total) passed += 1;
+  });
+  return passed;
+}
+
+// "Ben Magid" -> "Ben M." when full names are switched off.
+function displayName(name, fullNames) {
+  var text = String(name || '').trim();
+  if (fullNames) return text;
+  var parts = text.split(/\s+/);
+  if (parts.length < 2) return text;
+  return parts[0] + ' ' + parts[parts.length - 1].charAt(0) + '.';
+}
+
+// Whole days from fromDay to toDay, both "YYYY-MM-DD".
+function daysBetween(fromDay, toDay) {
+  var a = Date.UTC(+fromDay.slice(0, 4), +fromDay.slice(5, 7) - 1, +fromDay.slice(8, 10));
+  var b = Date.UTC(+toDay.slice(0, 4), +toDay.slice(5, 7) - 1, +toDay.slice(8, 10));
+  return Math.round((b - a) / 86400000);
+}
+
+// Pace line: pounds a day needed from today (inclusive) to reach the goal by
+// the end date, and what the school brought in yesterday.
+function pace(donations, today, yesterday, endDay, goalLb, poundsPerCan) {
+  var tonCans = 0;
+  var yesterdayCans = 0;
+  donations.forEach(function (d) {
+    if (d.source !== 'student' && d.source !== 'faculty') return;
+    tonCans += d.cans;
+    if (d.day === yesterday) yesterdayCans += d.cans;
+  });
+  var doneLb = tonCans * poundsPerCan;
+  var daysLeft = Math.max(daysBetween(today, endDay) + 1, 1);
+  var neededPerDay = Math.max(Math.ceil((goalLb - doneLb) / daysLeft), 0);
+  var yesterdayLb = Math.round(yesterdayCans * poundsPerCan);
+  return { neededPerDay: neededPerDay, yesterdayLb: yesterdayLb, daysLeft: daysLeft,
+           behind: yesterdayLb < neededPerDay };
+}
+
+// "If everyone brings five": cans each student would need to bring.
+function perStudent(goalLb, poundsPerCan, studentCount) {
+  if (!studentCount) return 0;
+  return Math.ceil(goalLb / poundsPerCan / studentCount);
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = { assignRanks: assignRanks, standings: standings, topWithTies: topWithTies,
+    moveUp: moveUp, countPassed: countPassed, displayName: displayName, pace: pace,
+    perStudent: perStudent, daysBetween: daysBetween, findRow: findRow };
+}
