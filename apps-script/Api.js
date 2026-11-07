@@ -144,59 +144,15 @@ function submitDonation(personId, cansValue, requestId) {
 }
 
 // Every board, computed from the Donations tab and cached for five minutes.
+// The math is in buildLeaderboard (Standings.js), so it can be tested offline.
 function getLeaderboard() {
   var cache = CacheService.getScriptCache();
   var cached = cache.get(CACHE_KEY);
   if (cached) return JSON.parse(cached);
 
-  var config = readConfig();
-  var roster = readRoster();
-  var donations = readDonations();
-  var lb = function (cans) { return Math.round(cans * config.poundsPerCan); };
-  var named = function (rows) {
-    return rows.map(function (r) {
-      var copy = {};
-      Object.keys(r).forEach(function (k) { copy[k] = r[k]; });
-      if (r.id) copy.name = displayName(r.name, config.fullNames);
-      copy.lb = lb(r.total);
-      return copy;
-    });
-  };
-
   var now = new Date();
-  var today = dayKey(now);
-  var yesterday = dayKey(new Date(now.getTime() - 86400000));
-  var school = standings(donations, roster, 'school', config.startDay, config.endDay, 'all');
-  var studentCount = roster.filter(function (p) { return p.type === 'student'; }).length;
-
-  var contests = readContests()
-    .filter(function (c) { return today >= c.startDay && today <= c.endDay; })
-    .map(function (c) {
-      var rows = standings(donations, roster, c.scope, c.startDay, c.endDay, c.filter);
-      return { name: c.name, description: c.description, scope: c.scope, endDay: c.endDay,
-               rows: named(c.scope === 'student' ? topWithTies(rows, 10) : rows) };
-    });
-
-  var result = {
-    ok: true,
-    asOf: now.toISOString(),
-    goalLb: config.goalLb,
-    poundsPerCan: config.poundsPerCan,
-    milestones: config.milestones,
-    startDay: config.startDay,
-    endDay: config.endDay,
-    totalLb: lb(school.tonCans),
-    facultyLb: lb(school.faculty),
-    poolLb: lb(school.pool),
-    pace: pace(donations, today, yesterday, config.endDay, config.goalLb, config.poundsPerCan),
-    studentCount: studentCount,
-    perStudent: perStudent(config.goalLb, config.poundsPerCan, studentCount),
-    grades: named(standings(donations, roster, 'grade', config.startDay, config.endDay, 'all')),
-    advisories: named(standings(donations, roster, 'advisory', config.startDay, config.endDay, 'all')),
-    topStudents: named(topWithTies(standings(donations, roster, 'student', config.startDay, config.endDay, 'all'), 10)),
-    faculty: named(topWithTies(standings(donations, roster, 'faculty', config.startDay, config.endDay, 'all'), 1000)),
-    contests: contests
-  };
+  var result = buildLeaderboard(readDonations(), readRoster(), readConfig(), readContests(), dayKey(now));
+  result.asOf = now.toISOString();
   cache.put(CACHE_KEY, JSON.stringify(result), CACHE_SECONDS);
   return result;
 }
