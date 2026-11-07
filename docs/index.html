@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The One Ton Can Drive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">The One Ton Can Drive</div>
+</header>
+
+<main>
+  <section class="screen" id="screen-loading">
+    <p class="muted center">Loading…</p>
+  </section>
+
+  <section class="screen" id="screen-error" hidden>
+    <h2>We can't reach the drive right now</h2>
+    <p class="muted">Check your connection and try again.</p>
+    <button class="btn-primary" data-action="reload">Try again</button>
+  </section>
+
+  <section class="screen" id="screen-closed" hidden>
+    <h2 id="closed-title"></h2>
+    <p class="muted" id="closed-text"></p>
+  </section>
+
+  <section class="screen" id="screen-grade" hidden>
+    <h2>What grade are you in?</h2>
+    <div class="grade-grid" id="grade-list"></div>
+  </section>
+
+  <section class="screen" id="screen-advisory" hidden>
+    <button class="back" data-action="back-to-grade">← Grade</button>
+    <h2>Pick your advisory</h2>
+    <div class="list" id="advisory-list"></div>
+  </section>
+
+  <section class="screen" id="screen-name" hidden>
+    <button class="back" data-action="back-to-advisory">← Advisory</button>
+    <h2>Find your name</h2>
+    <input class="search" id="name-search" type="search" placeholder="Search your advisory" autocomplete="off">
+    <div class="list" id="name-list"></div>
+    <p class="muted small">Not on the list? <a id="not-listed" href="#">Tell the One Ton Club.</a></p>
+  </section>
+
+  <section class="screen" id="screen-cans" hidden>
+    <p class="who" id="cans-who"></p>
+    <h2>How many cans?</h2>
+    <div class="cans-row">
+      <button class="step" data-action="minus" aria-label="One fewer">−</button>
+      <input id="cans" type="text" inputmode="numeric" autocomplete="off" aria-label="Number of cans">
+      <button class="step" data-action="plus" aria-label="One more">+</button>
+    </div>
+    <div class="quick" id="quick"></div>
+    <p class="muted small center">50 cans max per entry. Brought more? Log it in two entries.</p>
+    <p class="muted small center">Take cans out of the case first: every can counts as one.</p>
+    <p class="message" id="cans-message" role="alert" hidden></p>
+
+    <div class="confirm" id="confirm" hidden>
+      <p id="confirm-text"></p>
+      <div class="confirm-buttons">
+        <button class="btn-primary" data-action="confirm-yes">Yes</button>
+        <button class="btn-ghost" data-action="confirm-fix">Let me fix it</button>
+      </div>
+    </div>
+
+    <p class="honesty">Please count only what you actually brought. This food goes to real families.</p>
+    <button class="btn-primary" id="submit" data-action="submit">Count my cans</button>
+
+    <div class="remembered" id="remembered" hidden>
+      <p class="muted small">Use your own phone. It remembers you next time.</p>
+      <button class="link" data-action="not-me">Not you? Change name</button>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-done" hidden>
+    <div class="check">✓</div>
+    <h2>You're in.</h2>
+    <p id="done-summary"></p>
+    <ul class="facts" id="done-facts"></ul>
+    <button class="btn-primary" data-action="log-more">Log more cans</button>
+    <a class="link quiet" id="report" href="#">Something wrong with this entry?</a>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

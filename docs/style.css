@@ -1,0 +1,93 @@
+/* Colours and fonts from the mockup. No school logo: not approved yet. */
+:root {
+  --cream: #F8F5EC;
+  --cream-dark: #EDE7D6;
+  --ink: #1B2A1F;
+  --ink-muted: #6E7A6F;
+  --cav: #2A4C31;
+  --cav-dark: #1B3320;
+  --cav-light: #E8EFE6;
+  --gold: #A07C22;
+  --gold-light: #F4ECD6;
+  --border: #D6CFB8;
+  --danger: #9B2C22;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.top { background: var(--cav); color: white; padding: 14px 16px; }
+.brand { font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px; max-width: 520px; margin: 0 auto; }
+
+main { max-width: 520px; margin: 0 auto; padding: 20px 16px 48px; }
+
+h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 28px; color: var(--cav); margin: 8px 0 18px; }
+
+.muted { color: var(--ink-muted); }
+.small { font-size: 14px; }
+.center { text-align: center; }
+
+button { font: inherit; color: inherit; cursor: pointer; }
+
+.btn-primary {
+  display: block; width: 100%; margin-top: 16px; padding: 16px;
+  background: var(--cav); color: white; border: 0; border-radius: 12px;
+  font-weight: 700; font-size: 18px; box-shadow: 0 3px 0 var(--cav-dark);
+}
+.btn-primary:disabled { opacity: 0.6; cursor: wait; }
+.btn-ghost {
+  display: block; width: 100%; margin-top: 10px; padding: 14px;
+  background: white; border: 1.5px solid var(--border); border-radius: 12px; font-weight: 500;
+}
+.link { background: none; border: 0; padding: 8px 0; color: var(--cav); text-decoration: underline; font-size: 15px; }
+.link.quiet { display: block; margin-top: 18px; color: var(--ink-muted); font-size: 14px; text-align: center; }
+.back { background: none; border: 0; padding: 4px 0; color: var(--cav); font-weight: 500; }
+
+.grade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grade-grid button {
+  padding: 26px 8px; background: white; border: 1.5px solid var(--border); border-radius: 14px;
+  box-shadow: 0 3px 0 var(--border); font-family: 'Fraunces', serif; font-size: 34px; font-weight: 600; color: var(--cav);
+}
+.grade-grid button span { display: block; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--ink-muted); }
+
+.list { display: flex; flex-direction: column; gap: 8px; }
+.list button {
+  text-align: left; padding: 15px 16px; background: white; border: 1.5px solid var(--border);
+  border-radius: 12px; font-size: 18px;
+}
+.search {
+  width: 100%; padding: 13px 14px; margin-bottom: 12px; font: inherit;
+  border: 1.5px solid var(--border); border-radius: 12px; background: white;
+}
+
+.who { margin: 0; color: var(--ink-muted); font-weight: 500; }
+.cans-row { display: flex; gap: 10px; align-items: stretch; }
+.cans-row input {
+  flex: 1; min-width: 0; text-align: center; font-family: 'Fraunces', serif; font-size: 40px; font-weight: 600;
+  border: 2px solid var(--border); border-radius: 14px; background: white; color: var(--ink); padding: 8px;
+}
+.step { width: 64px; font-size: 30px; background: white; border: 1.5px solid var(--border); border-radius: 14px; }
+.quick { display: flex; gap: 8px; margin: 12px 0 6px; }
+.quick button { flex: 1; padding: 10px 0; background: var(--cav-light); border: 0; border-radius: 10px; font-weight: 700; color: var(--cav); }
+
+.message { color: var(--danger); font-weight: 500; text-align: center; }
+.confirm { margin-top: 14px; padding: 16px; background: var(--gold-light); border: 1.5px solid var(--gold); border-radius: 12px; }
+.confirm p { margin: 0 0 4px; font-weight: 500; }
+.honesty { margin: 18px 0 0; padding: 12px 14px; background: var(--cav-light); border-radius: 10px; font-size: 15px; }
+.remembered { margin-top: 18px; text-align: center; }
+.remembered p { margin: 0; }
+
+.check {
+  width: 64px; height: 64px; border-radius: 50%; background: var(--cav); color: white;
+  font-size: 34px; display: flex; align-items: center; justify-content: center; margin: 10px 0 4px;
+}
+.facts { padding-left: 20px; line-height: 1.6; }
