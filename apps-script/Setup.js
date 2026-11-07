@@ -68,6 +68,7 @@ function setupSheet() {
       ['bin_locations', '', 'To be decided with facilities in December.']
     ]);
     config.getRange('B2:B3').setNumberFormat('yyyy-mm-dd');
+    config.getRange('B5').setNumberFormat('@').setValue('500, 1000, 1500, 2000');
   }
 
   makeTab(ss, TAB.contests, CONTEST_COLUMNS);
@@ -108,6 +109,28 @@ function tidyDonations() {
   } finally {
     lock.releaseLock();
   }
+}
+
+// One-time repair for two Config cells the first setup got wrong:
+//   milestones: Sheets read "500,1000,1500,2000" as one big number.
+//   end_date: written while the Sheet was on Pacific time, it became
+//   March 3 when the Sheet moved to Eastern.
+// Only touches those two cells, and only if they still hold the bad values.
+function fixConfigCells() {
+  var config = tab(TAB.config);
+  var rows = config.getRange(2, 1, config.getLastRow() - 1, 2).getValues();
+  rows.forEach(function (row, i) {
+    var cell = config.getRange(i + 2, 2);
+    if (row[0] === 'milestones' && typeof row[1] === 'number') {
+      cell.setNumberFormat('@').setValue('500, 1000, 1500, 2000');
+      console.log('Fixed milestones.');
+    }
+    if (row[0] === 'end_date' && row[1] instanceof Date && dayKey(row[1]) === '2027-03-03') {
+      cell.setValue(new Date(2027, 2, 4)).setNumberFormat('yyyy-mm-dd');
+      console.log('Fixed end_date: now ' + dayKey(cell.getValue()) + '.');
+    }
+  });
+  CacheService.getScriptCache().remove(CACHE_KEY);
 }
 
 function makeTab(ss, name, columns) {

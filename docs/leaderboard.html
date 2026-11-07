@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Leaderboard · The One Ton Can Drive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">The One Ton Can Drive</div>
+    <a class="top-link" href="./">Log cans</a>
+  </div>
+</header>
+
+<main class="wide">
+  <p class="muted center" id="loading">Loading…</p>
+  <div id="error" hidden>
+    <h2>We can't reach the leaderboard right now</h2>
+    <p class="muted">Check your connection. It will try again on its own.</p>
+  </div>
+
+  <div id="board" hidden>
+    <section class="tracker" aria-label="One Ton tracker">
+      <div class="tracker-numbers">
+        <span class="tracker-total" id="total"></span>
+        <span class="muted" id="goal"></span>
+      </div>
+      <div class="bar" id="bar">
+        <div class="bar-fill" id="bar-fill"></div>
+      </div>
+      <div class="bar-marks" id="marks"></div>
+      <p class="pace" id="pace"></p>
+      <p class="five" id="five"></p>
+      <p class="muted small" id="disclosure"></p>
+    </section>
+
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+
+    <section id="view">
+      <button class="back" id="back" hidden></button>
+      <h2 id="view-title"></h2>
+      <p class="muted small" id="view-note"></p>
+      <ol class="rows" id="rows"></ol>
+    </section>
+
+    <p class="muted small center" id="updated"></p>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script src="leaderboard.js"></script>
+</body>
+</html>
