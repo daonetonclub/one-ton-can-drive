@@ -47,3 +47,15 @@ test('20 donations at the same moment make exactly 20 rows', { skip, timeout: 30
   assert.equal(after.totalLb - before.totalLb, saved, 'rows match saved donations');
   assert.equal(saved, 20, 'every donation saved');
 });
+
+test('the same one-time code sent twice makes one row, not two', { skip, timeout: 120000 }, async () => {
+  const before = await call({ action: 'leaderboard' });
+  const request = 'livetest-' + Date.now();
+  const first = await call({ action: 'donate', person: 'S010', cans: 2, request });
+  const second = await call({ action: 'donate', person: 'S010', cans: 2, request });
+  assert.equal(first.ok, true);
+  assert.equal(second.ok, true);
+  assert.deepEqual(second, first, 'the retry gets the first answer back');
+  const after = await call({ action: 'leaderboard' });
+  assert.equal(after.totalLb - before.totalLb, 2 * after.poundsPerCan);
+});

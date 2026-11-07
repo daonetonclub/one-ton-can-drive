@@ -1,13 +1,14 @@
 // The web address the website talks to. Three actions only:
 //   roster       -> getRoster()
 //   leaderboard  -> getLeaderboard()
-//   donate       -> submitDonation(personId, cans)
+//   donate       -> submitDonation(personId, cans, requestId)
 // The browser sends POST bodies as text/plain and they are parsed here, because
 // POSTing JSON to an Apps Script web app fails on CORS. GET works too, so a
 // donation can be tested from a plain link.
 
 var CACHE_KEY = 'leaderboard';
 var CACHE_SECONDS = 300;
+var REQUEST_SECONDS = 600;  // how long a one-time save code is remembered
 
 function doGet(e) {
   return respond(route(e && e.parameter ? e.parameter : {}));
@@ -28,7 +29,7 @@ function route(params) {
     switch (params.action) {
       case 'roster': return getRoster();
       case 'leaderboard': return getLeaderboard();
-      case 'donate': return submitDonation(params.person, params.cans);
+      case 'donate': return submitDonation(params.person, params.cans, params.request);
       default: return { ok: false, error: 'bad_request', message: 'Unknown action.' };
     }
   } catch (err) {
@@ -66,7 +67,10 @@ function snapshot(donations, roster, person, config) {
   return { board: board, me: me, advisory: advisory };
 }
 
-function submitDonation(personId, cansValue) {
+// requestId is a one-time code the page makes for each save. If the same code
+// arrives again (a retry after a dropped connection), nothing new is written
+// and the first answer is sent back, so the cans are never logged twice.
+function submitDonation(personId, cansValue, requestId) {
   var config = readConfig();
   var open = checkOpen(dayKey(new Date()), config.startDay, config.endDay);
   if (!open.ok) return open;
@@ -89,21 +93,26 @@ function submitDonation(personId, cansValue) {
   var flag = flagReason(check.cans, now.getTime(), recent);
 
   // Only the write is locked, so a crowd at an assembly moves through quickly.
+  var cache = CacheService.getScriptCache();
+  var requestKey = /^[A-Za-z0-9-]{8,64}$/.test(String(requestId || '')) ? 'request:' + requestId : '';
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) {
     return { ok: false, error: 'busy', message: "That didn't save. Your cans were not counted yet. Try again." };
   }
   try {
+    var seen = requestKey ? cache.get(requestKey) : null;
+    if (seen) return seen === 'saved' ? { ok: true, cans: check.cans, duplicate: true } : JSON.parse(seen);
     var sheet = tab(TAB.donations);
     var row = nextDonationRow(sheet);
     sheet.getRange(row, 1, 1, DONATION_COLUMNS.length)
       .setValues([[now, person.id, person.name, check.cans, person.type, '', flag, false]]);
     reviewedCheckboxes(sheet, row, 1);
     SpreadsheetApp.flush();
+    if (requestKey) cache.put(requestKey, 'saved', REQUEST_SECONDS);
   } finally {
     lock.releaseLock();
   }
-  CacheService.getScriptCache().remove(CACHE_KEY);
+  cache.remove(CACHE_KEY);
 
   // "After" is the log as it now stands. "Before" is exactly that log without
   // this donation, so the two numbers always compare the same moment.
@@ -117,9 +126,10 @@ function submitDonation(personId, cansValue) {
   var before = snapshot(beforeLog, roster, person, config);
   var after = snapshot(afterLog, roster, person, config);
 
-  return {
+  var result = {
     ok: true,
     cans: check.cans,
+    poundsPerCan: config.poundsPerCan,
     name: displayName(person.name, config.fullNames),
     before: { rank: before.me.rank, total: before.me.total },
     after: { rank: after.me.rank, total: after.me.total },
@@ -129,6 +139,8 @@ function submitDonation(personId, cansValue) {
           donors: after.advisory.donors, size: after.advisory.size }
       : null
   };
+  if (requestKey) cache.put(requestKey, JSON.stringify(result), REQUEST_SECONDS);
+  return result;
 }
 
 // Every board, computed from the Donations tab and cached for five minutes.
@@ -169,6 +181,7 @@ function getLeaderboard() {
     ok: true,
     asOf: now.toISOString(),
     goalLb: config.goalLb,
+    poundsPerCan: config.poundsPerCan,
     milestones: config.milestones,
     startDay: config.startDay,
     endDay: config.endDay,
