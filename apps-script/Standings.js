@@ -216,6 +216,7 @@ function buildLeaderboard(donations, roster, config, contests, today) {
     topStudents: named(topWithTies(students, 10)),
     students: named(students),
     faculty: named(topWithTies(board('faculty'), 1000)),
+    staff: named(board('faculty')),
     contests: contests
       .filter(function (c) { return today >= c.startDay && today <= c.endDay; })
       .map(function (c) {
@@ -226,9 +227,47 @@ function buildLeaderboard(donations, roster, config, contests, today) {
   };
 }
 
+// Find me: where one person stands, for the person card on the leaderboard.
+// Works for people who haven't donated. Students are ranked in their
+// advisory, grade and school; faculty on the faculty board. Never emails.
+function personReport(donations, roster, config, id) {
+  var person = findRow(roster, 'id', id);
+  if (!person || (person.type !== 'student' && person.type !== 'faculty')) return null;
+  var start = config.startDay;
+  var end = config.endDay;
+  var place = function (rows) {
+    var me = findRow(rows, 'id', id);
+    return { rank: me.rank, of: rows.length };
+  };
+  var lb = function (cans) { return Math.round(cans * config.poundsPerCan); };
+
+  var report = { ok: true, id: person.id, name: displayName(person.name, config.fullNames), type: person.type,
+                 grade: person.grade, advisory: person.advisory };
+  var main;
+  if (person.type === 'faculty') {
+    main = standings(donations, roster, 'faculty', start, end, 'all');
+    report.faculty = place(main);
+  } else {
+    main = standings(donations, roster, 'student', start, end, 'all');
+    report.school = place(main);
+    report.gradeRank = place(standings(donations, roster, 'student', start, end, String(person.grade)));
+    var sameAdvisory = roster.filter(function (p) { return p.type === 'student' && p.advisory === person.advisory; });
+    report.advisoryRank = place(standings(donations, sameAdvisory, 'student', start, end, 'all'));
+  }
+  var me = findRow(main, 'id', id);
+  report.totalCans = me.total;
+  report.totalLb = lb(me.total);
+  report.moveUp = moveUp(main, id);
+  report.history = donations
+    .filter(function (d) { return d.personId === id && inWindow(d, start, end); })
+    .sort(function (a, b) { return a.timestamp - b.timestamp || (a.day < b.day ? -1 : 1); })
+    .map(function (d) { return { day: d.day, cans: d.cans }; });
+  return report;
+}
+
 if (typeof module !== 'undefined') {
   module.exports = { assignRanks: assignRanks, standings: standings, topWithTies: topWithTies,
     moveUp: moveUp, countPassed: countPassed, displayName: displayName, pace: pace,
     perStudent: perStudent, daysBetween: daysBetween, findRow: findRow, addDays: addDays,
-    buildLeaderboard: buildLeaderboard };
+    buildLeaderboard: buildLeaderboard, personReport: personReport };
 }

@@ -133,3 +133,8 @@ body:has(main.wide) .top-inner { max-width: 720px; }
 .row .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row .meta { font-size: 13px; color: var(--ink-muted); }
 .row .lb { font-family: 'Fraunces', serif; font-weight: 600; white-space: nowrap; }
+
+/* ---- Find me ---- */
+#card h3 { font-family: 'Fraunces', serif; color: var(--cav); margin: 18px 0 4px; }
+.card-total { font-family: 'Fraunces', serif; font-size: 34px; font-weight: 600; color: var(--cav); margin: 6px 0; }
+.moveup { padding: 12px 14px; background: var(--gold-light); border-radius: 10px; font-weight: 500; }

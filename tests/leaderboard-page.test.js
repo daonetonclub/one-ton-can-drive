@@ -24,17 +24,25 @@ const roster = [
   P('s01', 'Ann Able', 9, 'Maple'), P('s02', 'Bo Baker', 9, 'Maple'),
   P('s03', 'Cy Carter', 9, 'Birch'), P('s04', 'Di Dunn', 9, 'Birch'),
   P('s05', 'Ed Ellis', 10, 'Cedar'), P('s06', 'Flo Fox', 10, 'Cedar'),
-  P('t01', 'Pat Teach', '', '', 'faculty')
+  P('t01', 'Pat Teach', '', '', 'faculty'), P('t02', 'Sam Staff', '', '', 'faculty')
 ];
 const G = (personId, cans, offset, source) => ({ personId, cans, day: day(offset), source: source || 'student', timestamp: 0 });
 const donations = [
   G('s01', 10, -3), G('s02', 7, -2), G('s03', 7, -1), G('s05', 5, -1), G('s06', 2, -2), G('t01', 12, -2, 'faculty')
 ];
 
-function reply(options) {
+function configFor(options) {
   const o = Object.assign({ goalLb: 2000, milestones: [500, 1000, 1500, 2000], startDay: day(-5), endDay: day(30), contests: [] }, options);
-  const config = { startDay: o.startDay, endDay: o.endDay, goalLb: o.goalLb,
-                   milestones: o.milestones, poundsPerCan: 1, fullNames: false };
+  return { o, config: { startDay: o.startDay, endDay: o.endDay, goalLb: o.goalLb,
+                        milestones: o.milestones, poundsPerCan: 1, fullNames: false } };
+}
+
+// The pretend server: the same functions the real one runs, on the test data.
+function answer(body, options) {
+  const { o, config } = configFor(options);
+  if (body.action === 'person') {
+    return S.personReport(donations, roster, config, body.person) || { ok: false, error: 'unknown_person' };
+  }
   return Object.assign(S.buildLeaderboard(donations, roster, config, o.contests, day(0)), { asOf: new Date().toISOString() });
 }
 
@@ -59,11 +67,14 @@ test.after(async () => {
   server.close();
 });
 
-async function open(options, viewport) {
+async function open(options, viewport, remembered) {
   const context = await browser.newContext({ viewport: viewport || { width: 390, height: 800 } });
   const page = await context.newPage();
-  const body = JSON.stringify(reply(options));
-  await page.route('https://script.google.com/**', r => r.fulfill({ contentType: 'application/json', body }));
+  if (remembered) {
+    await page.addInitScript(me => localStorage.setItem('oneTon.me', JSON.stringify(me)), remembered);
+  }
+  await page.route('https://script.google.com/**', r => r.fulfill({ contentType: 'application/json',
+    body: JSON.stringify(answer(JSON.parse(r.request().postData() || '{}'), options)) }));
   await page.route('https://fonts.googleapis.com/**', r => r.abort());
   await page.route('https://fonts.gstatic.com/**', r => r.abort());
   await page.goto(base + 'leaderboard.html');
@@ -136,13 +147,13 @@ test('tabs: advisories, top students (ties share a place), faculty', async () =>
 
 test('contest tabs appear only while a contest is running', async () => {
   let { page, context } = await open();
-  assert.deepEqual(await page.getByRole('tab').allTextContents(), ['Grades', 'Advisories', 'Top students', 'Faculty']);
+  assert.deepEqual(await page.getByRole('tab').allTextContents(), ['Grades', 'Advisories', 'Top students', 'Faculty', 'Find me']);
   await context.close();
   ({ page, context } = await open({ contests: [
     { name: 'This week', startDay: day(-2), endDay: day(4), scope: 'student', filter: 'all', description: 'Most cans this week.' },
     { name: 'Next month', startDay: day(20), endDay: day(27), scope: 'grade', filter: 'all', description: '' }
   ] }));
-  assert.deepEqual(await page.getByRole('tab').allTextContents(), ['Grades', 'Advisories', 'Top students', 'Faculty', 'This week']);
+  assert.deepEqual(await page.getByRole('tab').allTextContents(), ['Grades', 'Advisories', 'Top students', 'Faculty', 'Find me', 'This week']);
   await page.getByRole('tab', { name: 'This week' }).click();
   assert.deepEqual(await rowsText(page), ['#1 Bo B. 7 lb', '#1 Cy C. 7 lb', '#3 Ed E. 5 lb', '#4 Flo F. 2 lb']);
   await context.close();
@@ -150,7 +161,7 @@ test('contest tabs appear only while a contest is running', async () => {
 
 test('no email address and no full name anywhere on the page', async () => {
   const { page, context } = await open();
-  for (const name of ['Grades', 'Advisories', 'Top students', 'Faculty']) {
+  for (const name of ['Grades', 'Advisories', 'Top students', 'Faculty', 'Find me']) {
     await page.getByRole('tab', { name }).click();
     const text = await page.locator('body').innerText();
     assert.doesNotMatch(text, /@/);
@@ -175,5 +186,56 @@ test('the donation page links to the leaderboard', async () => {
   await page.goto(base + 'index.html');
   assert.equal(await page.getAttribute('.top-link', 'href'), 'leaderboard.html');
   assert.equal(await page.locator('#screen-done a.btn-primary').getAttribute('href'), 'leaderboard.html');
+  await context.close();
+});
+
+// Find me. Students: Ann 10 (#1), Bo 7 (#2), Cy 7 (#2), Ed 5 (#4), Flo 2 (#5), Di 0 (#6).
+
+test('Find me: someone with nothing donated is found, with ranks and a way up', async () => {
+  const { page, context } = await open();
+  await page.getByRole('tab', { name: 'Find me' }).click();
+  await page.fill('#findme-input', 'di');
+  assert.deepEqual(await page.locator('#findme-results .name').allTextContents(), ['Di D.']);
+  await page.locator('#findme-results button').first().click();
+  await page.locator('#card-name', { hasText: 'Di D.' }).waitFor();
+  assert.equal(await page.locator('#card-where').textContent(), 'Birch advisory · Grade 9');
+  assert.equal(await page.locator('#card-total').textContent(), '0 lb so far');
+  assert.deepEqual(await page.locator('#card-ranks li').allTextContents(),
+    ['#2 of 2 in Birch advisory', '#4 of 4 in Grade 9', '#6 of 6 in the school']);
+  assert.equal(await page.locator('#card-moveup').textContent(), '2 more cans puts you at #5.');
+  assert.deepEqual(await page.locator('#card-history li').allTextContents(), ['Nothing logged yet.']);
+  await context.close();
+});
+
+test('Find me: a donor sees history, newest first, and the next-distinct-total line', async () => {
+  const { page, context } = await open();
+  await page.getByRole('tab', { name: 'Find me' }).click();
+  await page.fill('#findme-input', 'bo');
+  await page.locator('#findme-results button').first().click();
+  await page.locator('#card-name', { hasText: 'Bo B.' }).waitFor();
+  assert.equal(await page.locator('#card-moveup').textContent(), '3 more cans puts you at #1, past 1 person.');
+  assert.equal(await page.locator('#card-history li').count(), 1);
+  assert.match(await page.locator('#card-history li').first().textContent(), /: 7 cans$/);
+  await page.click('#card-back');
+  assert.equal(await page.locator('#findme-search').isVisible(), true);
+  await context.close();
+});
+
+test('Find me: staff who have donated nothing are found too', async () => {
+  const { page, context } = await open();
+  await page.getByRole('tab', { name: 'Find me' }).click();
+  await page.fill('#findme-input', 'sam');
+  await page.locator('#findme-results button').first().click();
+  await page.locator('#card-name', { hasText: 'Sam S.' }).waitFor();
+  assert.equal(await page.locator('#card-where').textContent(), 'Faculty and staff');
+  assert.deepEqual(await page.locator('#card-ranks li').allTextContents(), ['#2 of 2 on the faculty board']);
+  await context.close();
+});
+
+test('Find me opens on you if this phone remembers you', async () => {
+  const { page, context } = await open({}, null, { id: 's01', name: 'Ann A.', grade: 9, advisory: 'Maple' });
+  await page.getByRole('tab', { name: 'Find me' }).click();
+  await page.locator('#card-name', { hasText: 'Ann A.' }).waitFor();
+  assert.equal(await page.locator('#card-moveup').textContent(), "You're in first place.");
   await context.close();
 });

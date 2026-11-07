@@ -2,7 +2,7 @@
   "name": "one-ton-can-drive",
   "private": true,
   "scripts": {
-    "test": "node --test --test-concurrency=1 tests/standings.test.js tests/rules.test.js tests/leaderboard.test.js tests/page.test.js tests/leaderboard-page.test.js",
+    "test": "node --test --test-concurrency=1 tests/standings.test.js tests/rules.test.js tests/leaderboard.test.js tests/person.test.js tests/page.test.js tests/leaderboard-page.test.js",
     "test:live": "node --test tests/live.test.js",
     "push": "clasp push"
   },

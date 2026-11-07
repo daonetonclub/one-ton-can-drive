@@ -2,6 +2,7 @@
 //   roster       -> getRoster()
 //   leaderboard  -> getLeaderboard()
 //   donate       -> submitDonation(personId, cans, requestId)
+//   person       -> getPerson(personId), for Find me
 // The browser sends POST bodies as text/plain and they are parsed here, because
 // POSTing JSON to an Apps Script web app fails on CORS. GET works too, so a
 // donation can be tested from a plain link.
@@ -30,6 +31,7 @@ function route(params) {
       case 'roster': return getRoster();
       case 'leaderboard': return getLeaderboard();
       case 'donate': return submitDonation(params.person, params.cans, params.request);
+      case 'person': return getPerson(params.person);
       default: return { ok: false, error: 'bad_request', message: 'Unknown action.' };
     }
   } catch (err) {
@@ -52,6 +54,12 @@ function getRoster() {
       return { id: p.id, name: displayName(p.name, config.fullNames), grade: p.grade, advisory: p.advisory };
     })
   };
+}
+
+// Find me: one person's ranks, history and move-up line. No emails.
+function getPerson(personId) {
+  var report = personReport(readDonations(), readRoster(), readConfig(), String(personId || '').trim());
+  return report || { ok: false, error: 'unknown_person', message: 'We could not find that name.' };
 }
 
 // Where a person and their advisory stand, for the success screen.

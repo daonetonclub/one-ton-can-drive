@@ -59,3 +59,12 @@ test('the same one-time code sent twice makes one row, not two', { skip, timeout
   const after = await call({ action: 'leaderboard' });
   assert.equal(after.totalLb - before.totalLb, 2 * after.poundsPerCan);
 });
+
+test('Find me: the person reply has ranks and no emails', { skip }, async () => {
+  const r = await call({ action: 'person', person: 'S004' });
+  assert.equal(r.ok, true);
+  assert.ok(r.school && r.gradeRank && r.advisoryRank);
+  assert.doesNotMatch(JSON.stringify(r), /@/);
+  const unknown = await call({ action: 'person', person: 'NOBODY' });
+  assert.equal(unknown.error, 'unknown_person');
+});

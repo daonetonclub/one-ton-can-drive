@@ -48,6 +48,24 @@
       <ol class="rows" id="rows"></ol>
     </section>
 
+    <section id="findme" hidden>
+      <div id="findme-search">
+        <h2>Find me</h2>
+        <input class="search" id="findme-input" type="search" placeholder="Type your name" autocomplete="off">
+        <ol class="rows" id="findme-results"></ol>
+      </div>
+      <div id="card" hidden>
+        <button class="back" id="card-back">← Search again</button>
+        <h2 id="card-name"></h2>
+        <p class="muted" id="card-where"></p>
+        <p class="card-total" id="card-total"></p>
+        <ul class="facts" id="card-ranks"></ul>
+        <p class="moveup" id="card-moveup"></p>
+        <h3>Donations</h3>
+        <ul class="facts" id="card-history"></ul>
+      </div>
+    </section>
+
     <p class="muted small center" id="updated"></p>
   </div>
 </main>

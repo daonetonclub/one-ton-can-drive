@@ -3,6 +3,7 @@
 
 (function () {
   var API = window.ONE_TON.api;
+  var STORE_KEY = 'oneTon.me';   // set by the donation page on this phone
   var REFRESH_MS = 2 * 60 * 1000;
 
   var data = null;
@@ -99,7 +100,8 @@
       { key: 'grades', label: 'Grades' },
       { key: 'advisories', label: 'Advisories' },
       { key: 'students', label: 'Top students' },
-      { key: 'faculty', label: 'Faculty' }
+      { key: 'faculty', label: 'Faculty' },
+      { key: 'findme', label: 'Find me' }
     ];
     (data.contests || []).forEach(function (c, i) { list.push({ key: 'contest' + i, label: c.name }); });
     return list;
@@ -169,6 +171,9 @@
   }
 
   function drawView() {
+    $('findme').hidden = tab !== 'findme';
+    $('view').hidden = tab === 'findme';
+    if (tab === 'findme') return drawFindMe();
     var last = route[route.length - 1];
     if (last && last.advisory) {
       var a = data.advisories.filter(function (x) { return x.name === last.advisory; })[0];
@@ -208,6 +213,111 @@
   }
 
   $('back').addEventListener('click', function () { route.pop(); drawView(); });
+
+  // ---- Find me ----
+  // Everyone is searchable, including people who haven't donated.
+
+  var cardFor = null;   // id of the person whose card is open
+  var askedFor = null;  // id the last card request was for
+
+  function rememberedId() {
+    try { var me = JSON.parse(localStorage.getItem(STORE_KEY)); return me && me.id; } catch (e) { return null; }
+  }
+
+  function drawFindMe() {
+    if (cardFor === null && rememberedId()) cardFor = rememberedId();
+    if (cardFor) return openCard(cardFor);
+    $('card').hidden = true;
+    $('findme-search').hidden = false;
+    drawResults($('findme-input').value);
+  }
+
+  function drawResults(search) {
+    var list = $('findme-results');
+    list.innerHTML = '';
+    var q = search.trim().toLowerCase();
+    if (!q) return;
+    var people = data.students.map(function (p) { return { id: p.id, name: p.name, meta: p.advisory + ' · Grade ' + p.grade }; })
+      .concat((data.staff || []).map(function (p) { return { id: p.id, name: p.name, meta: 'Faculty and staff' }; }));
+    var found = people.filter(function (p) { return p.name.toLowerCase().indexOf(q) !== -1; })
+      .sort(function (a, b) { return a.name.localeCompare(b.name); }).slice(0, 30);
+    if (!found.length) {
+      var none = document.createElement('li');
+      none.className = 'muted';
+      none.textContent = 'No one by that name. Try fewer letters.';
+      list.appendChild(none);
+    }
+    found.forEach(function (p) {
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'row tappable';
+      b.innerHTML = '<span class="info"><span class="name"></span><span class="meta"></span></span>';
+      b.querySelector('.name').textContent = p.name;
+      b.querySelector('.meta').textContent = p.meta;
+      b.addEventListener('click', function () { cardFor = p.id; openCard(p.id); });
+      li.appendChild(b);
+      list.appendChild(li);
+    });
+  }
+
+  function openCard(id) {
+    $('findme-search').hidden = true;
+    $('card').hidden = false;
+    askedFor = id;
+    $('card-name').textContent = 'Loading…';
+    ['card-where', 'card-total', 'card-moveup'].forEach(function (k) { $(k).textContent = ''; });
+    $('card-ranks').innerHTML = '';
+    $('card-history').innerHTML = '';
+    api({ action: 'person', person: id }).then(function (r) {
+      if (askedFor !== id) return;           // a newer card was opened meanwhile
+      if (!r.ok) { cardFor = null; return drawFindMe(); }
+      drawCard(r);
+    }).catch(function () { $('card-name').textContent = "We can't reach the leaderboard right now."; });
+  }
+
+  function addItem(list, text) {
+    var li = document.createElement('li');
+    li.textContent = text;
+    list.appendChild(li);
+  }
+
+  function cansWord(n) { return n === 1 ? 'can' : 'cans'; }
+
+  function drawCard(r) {
+    $('card-name').textContent = r.name;
+    $('card-where').textContent = r.type === 'faculty' ? 'Faculty and staff' : r.advisory + ' advisory · Grade ' + r.grade;
+    $('card-total').textContent = fmt(r.totalLb) + ' lb so far';
+    var ranks = $('card-ranks');
+    if (r.type === 'faculty') {
+      addItem(ranks, '#' + r.faculty.rank + ' of ' + r.faculty.of + ' on the faculty board');
+    } else {
+      addItem(ranks, '#' + r.advisoryRank.rank + ' of ' + r.advisoryRank.of + ' in ' + r.advisory + ' advisory');
+      addItem(ranks, '#' + r.gradeRank.rank + ' of ' + r.gradeRank.of + ' in Grade ' + r.grade);
+      addItem(ranks, '#' + r.school.rank + ' of ' + r.school.of + ' in the school');
+    }
+    var m = r.moveUp;
+    if (!m) {
+      $('card-moveup').textContent = "You're in first place.";
+    } else {
+      $('card-moveup').textContent = m.cans + ' more ' + cansWord(m.cans) + ' puts you at #' + m.rank +
+        (m.passes > 0 ? ', past ' + m.passes + (m.passes === 1 ? ' person.' : ' people.') : '.');
+    }
+    var history = $('card-history');
+    if (!r.history.length) addItem(history, 'Nothing logged yet.');
+    r.history.slice().reverse().forEach(function (h) {
+      addItem(history, longDate(h.day) + ': ' + h.cans + ' ' + cansWord(h.cans));
+    });
+  }
+
+  $('findme-input').addEventListener('input', function (e) { drawResults(e.target.value); });
+  $('card-back').addEventListener('click', function () {
+    cardFor = '';               // '' means "searching", so the remembered person doesn't reopen
+    $('card').hidden = true;
+    $('findme-search').hidden = false;
+    $('findme-input').focus();
+    drawResults($('findme-input').value);
+  });
 
   // ---- Loading and refreshing ----
 
