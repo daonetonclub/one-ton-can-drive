@@ -2,7 +2,7 @@
 
 This file is the source of truth for what we are building, and the living version of the spec. It wins over the original spec PDF and the mockup, which are kept unchanged for reference. Decisions and their reasons are in `DECISIONS.md`. Every change to the plan is logged with a date in "What changed" at the bottom.
 
-**Status:** Phase 1 done (7 November 2026). Next: Phase 2.
+**Status:** Phases 1 and 2 done (7 November 2026). The donation page is live at https://daonetonclub.github.io/one-ton-can-drive/. Next: Phase 3.
 
 ## 1. The Google Sheet
 
@@ -149,9 +149,12 @@ Each phase needs its tests passing, and Ben checking it on his phone, before the
 - **Checked by Ben:** a donation sent from his phone through a web address appeared in the Donations tab.
 
 ### Phase 2: donation page
-- **Steps:** grade, advisory, name, cans, done screens; remember the student on their phone; "Not you? Change name"; the cans box that doesn't fight the user; the "just checking" step at 20; the over-50 message; the failed-save message; before/after-the-drive messages; hosted on GitHub Pages.
-- **Tests:** browser tests for the cans box (empty blocked, 20 asks to confirm, 51 refused); a double tap makes one donation; Ben donates on his phone, closes the tab, scans again and lands on the cans screen with his name.
-- **Done when:** that works on Ben's phone.
+**Done 7 November 2026.**
+- **Built:** the page in `docs/` (plain HTML, CSS and JavaScript), hosted on GitHub Pages from the `main` branch, `/docs` folder. Grade, advisory, name, cans and done screens; remembered person with "Not you? Change name"; the cans box; the "just checking" step at 20; the over-50 message; the failed-save message; closed messages before and after the drive. Mockup colours and fonts, no school logo.
+- **Saving twice is impossible:** each save carries a one-time code. The server remembers codes for 10 minutes, so a retry after a dropped connection returns the first answer instead of logging the cans again.
+- **Tests passing:** 13 browser tests in headless Chrome against a pretend server (`npm test`, with the 17 math tests): empty blocked, typing never rewritten, + and − and quick buttons, 51 refused, 20 asks to confirm with Yes and Let me fix it, a double tap sends one save, a failed save keeps the number and retries with the same code, the done screen, remember me and "Not you?", closed before and after the drive, no email address on the page. 5 live tests (`npm run test:live`), including "the same code twice makes one row".
+- **Checked by Ben:** donated as a fake student on his phone, closed the tab, reopened the address and landed on the cans screen with that name. The Sheet had exactly one row for it.
+- **Still not tested live:** refusal outside the drive dates (needs the Config start date moved for a minute).
 
 ### Phase 3: leaderboard
 - **Steps:** tracker, pace line, "everyone brings five", disclosure line, grade/advisory/top-10/faculty boards with drill-down, contest boards, the name switch.
@@ -180,6 +183,15 @@ Each phase needs its tests passing, and Ben checking it on his phone, before the
 ## What changed
 
 Newest first. Every change to this plan gets a dated line here, saying what changed and why.
+
+- **7 November 2026, Phase 2 finished.**
+  - One-time save codes added (not in the original plan): the plan said a double tap must never make two donations. Disabling the button covers taps, but not a retry after the connection drops mid-save. The server now remembers each save's code for 10 minutes. No new Sheet column.
+  - The "Faculty and staff" link is hidden until the faculty path is built in Phase 4, and "See the leaderboard" until Phase 3. Until then, faculty names are left out of the student name lists.
+  - The done screen has a "Log more cans" button that goes back to the cans screen.
+  - "Something wrong with this entry?" and "Not on the list?" open an email to daonetonclub@gmail.com.
+  - The cans screen also says "Take cans out of the case first: every can counts as one." (from the spec's counting rule).
+  - No Durham Academy logo, since the spec says it isn't approved. Colours and fonts only.
+  - Advisory standings on the done screen are shown in pounds (decision 7); a student's own rank is by cans logged.
 
 - **7 November 2026, Phase 1 finished.**
   - Saving a donation: the plan said read, write, read all inside the lock. With 20 people at once, the 2-second turns made later people wait too long, and 5 to 14 of 20 were told "try again". Now only the write is locked, and "before" is worked out from the log without the new donation. 20 at once now all save. Approved by Ben and Oren (decision 20).
