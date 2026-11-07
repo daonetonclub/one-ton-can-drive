@@ -80,41 +80,46 @@ function submitDonation(personId, cansValue) {
     return { ok: false, error: 'unknown_person', message: 'We could not find that name. Pick it from the list again.' };
   }
 
+  // Inside the lock: read the log, then write the new row. Nothing else can
+  // write in between, so "before" is the log just read and "after" is that
+  // log plus this row. Only the Sheet work is locked; the ranking math runs
+  // after the lock is released, so a crowd at an assembly doesn't queue up.
   var lock = LockService.getScriptLock();
-  if (!lock.tryLock(20000)) {
+  if (!lock.tryLock(30000)) {
     return { ok: false, error: 'busy', message: "That didn't save. Your cans were not counted yet. Try again." };
   }
+  var existing;
+  var now = new Date();
   try {
-    // Read, write, read, all inside the lock, so the "before" number is real.
-    var existing = readDonations();
-    var before = snapshot(existing, roster, person, config);
-
-    var now = new Date();
+    existing = readDonations();
     var recent = existing
       .filter(function (d) { return d.personId === person.id; })
       .map(function (d) { return d.timestamp; });
     var flag = flagReason(check.cans, now.getTime(), recent);
     tab(TAB.donations).appendRow([now, person.id, person.name, check.cans, person.type, '', flag, false]);
     SpreadsheetApp.flush();
-
-    var after = snapshot(readDonations(), roster, person, config);
-    CacheService.getScriptCache().remove(CACHE_KEY);
-
-    return {
-      ok: true,
-      cans: check.cans,
-      name: displayName(person.name, config.fullNames),
-      before: { rank: before.me.rank, total: before.me.total },
-      after: { rank: after.me.rank, total: after.me.total },
-      passed: countPassed(before.board, after.board, person.id),
-      advisory: after.advisory
-        ? { name: after.advisory.name, rank: after.advisory.rank, total: after.advisory.total,
-            donors: after.advisory.donors, size: after.advisory.size }
-        : null
-    };
   } finally {
     lock.releaseLock();
   }
+  CacheService.getScriptCache().remove(CACHE_KEY);
+
+  var added = { timestamp: now.getTime(), day: dayKey(now), personId: person.id,
+                cans: check.cans, source: person.type };
+  var before = snapshot(existing, roster, person, config);
+  var after = snapshot(existing.concat([added]), roster, person, config);
+
+  return {
+    ok: true,
+    cans: check.cans,
+    name: displayName(person.name, config.fullNames),
+    before: { rank: before.me.rank, total: before.me.total },
+    after: { rank: after.me.rank, total: after.me.total },
+    passed: countPassed(before.board, after.board, person.id),
+    advisory: after.advisory
+      ? { name: after.advisory.name, rank: after.advisory.rank, total: after.advisory.total,
+          donors: after.advisory.donors, size: after.advisory.size }
+      : null
+  };
 }
 
 // Every board, computed from the Donations tab and cached for five minutes.
