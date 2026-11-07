@@ -1,6 +1,8 @@
 # One Ton Can Drive: Plan
 
-This file is the source of truth for what we are building. It wins over the spec and the mockup. Decisions and their reasons are in `DECISIONS.md`.
+This file is the source of truth for what we are building, and the living version of the spec. It wins over the original spec PDF and the mockup, which are kept unchanged for reference. Decisions and their reasons are in `DECISIONS.md`. Every change to the plan is logged with a date in "What changed" at the bottom.
+
+**Status:** Phase 1 done (7 November 2026). Next: Phase 2.
 
 ## 1. The Google Sheet
 
@@ -39,13 +41,15 @@ One row per donation. The site only adds rows; it never edits or deletes one. Or
 
 Flagged rows turn red with conditional formatting. This tab is the organizer view.
 
+Each new donation is written directly under the last row that has a timestamp, and only that row gets a "reviewed" checkbox. (Checkboxes on empty rows make Google treat them as used, which pushed early test donations below row 1,000.) The Sheet's time zone is Eastern, the same as the program's.
+
 ### Config tab
 
 Settings changed without touching code.
 
 | Setting | Starting value |
 |---|---|
-| Start date | 19 January 2027 |
+| Start date | 19 January 2027. **While building, set to the day setup ran (7 November 2026) so test donations are accepted. Change to 19 January 2027 in Phase 6.** |
 | End date | 4 March 2027 |
 | Goal | 2,000 lb |
 | Milestones | 500, 1,000, 1,500, 2,000 |
@@ -137,9 +141,12 @@ Not in version one: the `?admin=1` organizer page (the Sheet does this job), a p
 Each phase needs its tests passing, and Ben checking it on his phone, before the next one starts. The detailed "how" of each phase is planned at its start.
 
 ### Phase 1: back end
-- **Steps:** the Sheet with Roster (fake 20-person roster), Donations, Config and Contests tabs; clasp set up; Apps Script functions getRoster, submitDonation, getLeaderboard and one `standings(scope, startDate, endDate, filter)`; every Donations write inside LockService; rank before and after computed in one server call.
-- **Tests:** ranking math with lots of ties ("2 more cans puts you at #35, past 14 people"); 20 donations at the same moment make exactly 20 rows; the roster response has no emails; 51 cans is refused; an empty or zero amount is refused; donations outside the Config dates are refused.
-- **Done when:** a donation sent through a web address appears as a row in the Sheet.
+**Done 7 November 2026.**
+- **Built:** the private Sheet (Roster with 20 fake people, Donations, Config, Contests) in the club Drive; clasp 3.4.1 connected to the club account; Apps Script functions getRoster, submitDonation, getLeaderboard and one `standings(scope, startDate, endDate, filter)`; the web app at one fixed address. Code is in `apps-script/`, tests in `tests/`.
+- **How a donation is saved:** checks first (cans 1 to 50, person on the roster, inside the drive dates). Then only the write to the Donations tab is locked. "Before" and "after" ranks both come from one server call: "after" is the log as it stands, "before" is that log without this donation.
+- **Tests passing:** 17 math tests (`npm test`): ties, "past 14 people", top 10 with ties, contests, cans limits, drive dates, flags. 4 live tests (`npm run test:live`): roster has no emails; 51 refused; unknown person refused; 20 donations at the same moment make exactly 20 rows (passed three times).
+- **Not yet tested live:** refusal outside the drive dates (covered by the math tests). Do it in Phase 2.
+- **Checked by Ben:** a donation sent from his phone through a web address appeared in the Donations tab.
 
 ### Phase 2: donation page
 - **Steps:** grade, advisory, name, cans, done screens; remember the student on their phone; "Not you? Change name"; the cans box that doesn't fight the user; the "just checking" step at 20; the over-50 message; the failed-save message; before/after-the-drive messages; hosted on GitHub Pages.
@@ -155,7 +162,7 @@ Each phase needs its tests passing, and Ben checking it on his phone, before the
 - In the order in section 4. First-donation email test: donate from a phone and a laptop under the same name and get exactly one email.
 
 ### Phase 5: real data and rehearsal (by about December 12)
-- **Steps:** the real roster goes into the Sheet only; print the QR code and scan it across a room; dry run with 5 to 10 real students; fix what breaks; teach one other member to fix a row in the Sheet.
+- **Steps:** move the fake test donations and fake roster rows into an archive tab (never deleted); the real roster goes into the Sheet only; print the QR code and scan it across a room; dry run with 5 to 10 real students; fix what breaks; teach one other member to fix a row in the Sheet.
 - **Tests:** search the GitHub code for any real student name or email and find none; a second dry run with no new problems.
 
 ### Phase 6: freeze (mid December)
@@ -169,3 +176,19 @@ Each phase needs its tests passing, and Ben checking it on his phone, before the
 - How the school collects money (for the "Give money" page).
 - How often the Learning Commons can swap the hallway screenshot.
 - Bin locations (facilities, December) and the food bank partner (club vote, mid-November).
+
+## What changed
+
+Newest first. Every change to this plan gets a dated line here, saying what changed and why.
+
+- **7 November 2026, Phase 1 finished.**
+  - Saving a donation: the plan said read, write, read all inside the lock. With 20 people at once, the 2-second turns made later people wait too long, and 5 to 14 of 20 were told "try again". Now only the write is locked, and "before" is worked out from the log without the new donation. 20 at once now all save. Approved by Ben and Oren (decision 20).
+  - Writing rows: Google's "add to the bottom" (appendRow) was replaced by writing under the last timestamped row, and checkboxes go only on donation rows. The first setup had put checkboxes on 1,000 empty rows, which pushed donations below row 1,000. A one-time `tidyDonations` repair moved all rows up; none were lost.
+  - Config start date is set to the setup day while building, so tests can donate. It goes back to 19 January 2027 in Phase 6.
+  - The review flag (25+ cans or rapid entries) is checked just before the lock, not inside it. It's a soft check, so this is fine.
+  - The roster list follows the full-names switch too, so with it off even the name picker shows "Ben M.".
+  - clasp: version 2.4.2's sign-in no longer works with Google, so the project uses clasp 3.4.1.
+  - The Sheet's time zone is set to Eastern, to match the program.
+  - Phase 5 now starts by moving test rows into an archive tab instead of deleting them.
+- **2 November 2026, plan written.** Sections 1 to 5 from the spec, the mockup and decisions 1 to 19.
+

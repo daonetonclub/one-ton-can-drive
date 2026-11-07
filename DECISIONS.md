@@ -30,3 +30,4 @@ Written decisions win over the spec and mockup. `PLAN.md` (coming) is the source
 17. **Top students board:** top 10. Everyone else uses Find me.
 18. **Ties at the top-10 cut:** everyone tied for 10th is shown, even if the list runs past 10.
 19. **Order of extras:** Find me, faculty path and board, first-donation email (if approved), hallway screen, "Give money" page (once the school confirms). Each optional; stop when time runs out.
+20. **Locking (7 November 2026):** only the write to the Donations tab is locked. "Before" rank is the log without the new donation, "after" is the log with it, both in the same server call. Replaces "read, write, read inside the lock", which made 5 to 14 of 20 simultaneous donors get "try again". Approved by Ben and Oren.

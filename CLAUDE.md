@@ -4,7 +4,8 @@ Ben is a high school student building the One Ton Can Drive website for the One 
 
 ## Source of truth
 
-- `PLAN.md` is the source of truth for what we are building. It wins over the spec and the mockup.
+- `PLAN.md` is the source of truth for what we are building and the living version of the spec. It wins over the spec and the mockup. Never edit the original spec PDF.
+- **Whenever anything changes from the plan** (a decision, a fix that works differently, a phase finishing), update `PLAN.md` to match what was actually built and add a dated line to its "What changed" section saying what changed and why. Show Ben before uploading.
 - `DECISIONS.md` records each decision and why. Read it before suggesting anything that might reopen one.
 - The spec and mockup are in `reference/`, which is git-ignored and must never be committed. The mockup contains real student names and emails. Use it only as a picture of the look and feel. If `reference/` is missing, ask Ben to upload the files again.
 - Private notes about staff contacts and email replies are in `reference/setup-notes.md`. Never copy them into a committed file.
@@ -31,7 +32,7 @@ Ben is a high school student building the One Ton Can Drive website for the One 
 - One `standings(scope, startDate, endDate, filter)` function behind every board and every contest.
 - Every write to the Donations tab happens inside LockService.
 - Student emails never leave the Sheet. `getRoster` returns `id`, name, grade and advisory only. No real student data in the code or on GitHub, ever. Use a fake 20-person roster until Phase 5.
-- A donation's rank before and after is computed in ONE server call (read, write, read, inside the lock), not three calls from the browser.
+- A donation's rank before and after is computed in ONE server call, not three calls from the browser. Only the write is locked; "before" is the log without the new donation (decision 20).
 - The first-donation email has an on/off switch in Config and is checked server-side against the Roster `first_emailed` column, never with a browser cookie. It contains only the name, the cans and who to contact; it has no confirm button. Don't add anything to it without Ben telling the technology office.
 - Dates, goal, milestones, pounds per can, switches and contests live in the Config and Contests tabs, never hard-coded.
 - Names come from the roster only. No free-text name entry anywhere.
@@ -43,6 +44,11 @@ Ben is a high school student building the One Ton Can Drive website for the One 
 - POSTing JSON to an Apps Script web app from the browser fails on CORS. Send the body as text/plain and parse it on the server.
 - A "New deployment" changes the web app URL and breaks the site. Always update the existing deployment.
 - Cache computed standings with CacheService for 5 minutes.
+- Don't use `appendRow` on the Donations tab. Write under the last row with a timestamp (`nextDonationRow`), and put the "reviewed" checkbox only on that row. Checkboxes on empty rows make Google treat them as used.
+- clasp 3.4.1, signed in as daonetonclub@gmail.com with `clasp login --no-localhost` (Ben pastes back the `http://localhost:8888/...` address). The sign-in file `~/.clasprc.json` lives only in the workspace; a new workspace needs a new sign-in.
+- After `clasp push`, update the existing deployment: `npx clasp update-deployment AKfycbwc4fukEa6Jh_hT4Qhl1_Bt3mZvgFsDJb1kU7FMVnyzrSAeZZrEqOAxVerIdW_zchk`. Never `create-deployment` again.
+- Functions that change the Sheet's layout (`setupSheet`, `tidyDonations`) are run by Ben from the Apps Script editor, not from the web address.
+- Claude can read a tab read-only with the clasp sign-in (Sheets "gviz" CSV export) instead of asking Ben to scroll. Only ever on the fake data; once real students are in, ask first.
 
 ## Phases
 
