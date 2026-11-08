@@ -88,7 +88,8 @@ const rowsText = page => page.locator('#rows li').allInnerTexts()
 test('tracker, pace line, everyone-brings-five and faculty line', async () => {
   const { page, context } = await open();
   assert.equal(await page.locator('#total').textContent(), '43');             // 31 student + 12 faculty
-  assert.equal(await page.locator('#goal').textContent(), '43 lb of 2,000 lb');
+  assert.equal(await page.locator('#goal').textContent(), '43 lbs of 2,000 lbs');
+  assert.equal(await page.locator('.lb-total .lbl').textContent(), 'lbs donated');
   assert.equal(await page.locator('#pct').textContent(), '2% to the ton · next milestone 500 lb');
   assert.match(await page.locator('#lb-date').textContent(), /^[A-Z][a-z]{2} \d{1,2} · day 6 of 36$/);
   assert.match(await page.locator('#five').textContent(), /^There are 6 of us\. If everyone brings 334, we hit the ton\.$/);
@@ -310,4 +311,43 @@ test('hallway screen: a big tie shows 8 rows and "+ N more tied", and still fits
     roster.splice(0, roster.length, ...saved);
     donations.splice(0, donations.length, ...savedGifts);
   }
+});
+
+// Contests box (mockup): running contests with prize and top 3, then chips
+
+test('contests box: running contest with its prize and top 3; upcoming and finished chips', async () => {
+  // Students: Ann 10 (day -3), Bo 7 (-2), Cy 7 (-1), Ed 5 (-1), Flo 2 (-2).
+  const { page, context } = await open({ contests: [
+    { name: 'This week', startDay: day(-2), endDay: day(4), scope: 'student', filter: 'all', description: '', prize: 'Front row at assembly' },
+    { name: 'Grade race', startDay: day(-2), endDay: day(4), scope: 'grade', filter: 'all', description: '', prize: '' },
+    { name: 'Next month', startDay: day(20), endDay: day(27), scope: 'advisory', filter: 'all', description: '', prize: 'Pizza at the game' },
+    { name: 'Opening race', startDay: day(-5), endDay: day(-3), scope: 'advisory', filter: 'all', description: '', prize: '' }
+  ] });
+  const box = page.locator('#race-box');
+  assert.equal(await box.locator('h3').textContent(), '🔥 Live contests');
+  assert.deepEqual(await box.locator('.race-col h4').allTextContents(), ['This week', 'Grade race']);
+  const metas = await box.locator('.col-meta').allTextContents();
+  assert.match(metas[0], /^All students · .* to .* · Front row at assembly$/);
+  assert.match(metas[1], /^Grades · .* · Prize: to be announced$/);
+  const firstCol = (await box.locator('.race-col').first().locator('.race-row').allInnerTexts()).map(t => t.replace(/\s+/g, ' ').trim());
+  assert.deepEqual(firstCol, ['1 Bo B. 7 lbs', '1 Cy C. 7 lbs', '3 Ed E. 5 lbs']);
+  const chips = (await box.locator('.chip').allInnerTexts()).map(t => t.replace(/\s+/g, ' ').trim());
+  assert.equal(chips.length, 2);
+  assert.match(chips[0], /^📅 Next month starts [A-Z][a-z]{2} \d{1,2} · Pizza at the game$/);
+  assert.equal(chips[1], '🏆 Opening race won by Maple (10 lbs)');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  // Only running contests get a tab.
+  assert.deepEqual(await page.getByRole('tab').allTextContents(),
+    ['Grades', 'Advisories', 'Top students', 'Faculty', 'Find me', 'This week', 'Grade race']);
+  await context.close();
+});
+
+test('contests box: nothing running says so; a tied finished contest names everyone tied', async () => {
+  const { page, context } = await open({ contests: [
+    { name: 'Tie race', startDay: day(-2), endDay: day(-1), scope: 'advisory', filter: 'all', description: '', prize: '' }
+  ] });
+  const box = page.locator('#race-box');
+  assert.match(await box.locator('.race-empty').innerText(), /^No contests running right now\./);
+  assert.equal((await box.locator('.chip').innerText()).replace(/\s+/g, ' ').trim(), '🏆 Tie race won by Birch, Cedar and Maple (tied, 7 lbs)');
+  await context.close();
 });

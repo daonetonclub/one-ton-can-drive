@@ -80,16 +80,44 @@ test('pace line and everyone-brings-five', () => {
   assert.equal(lb.perStudent, 143);  // 2,000 / 14, rounded up
 });
 
-test('contest boards: only running contests, only donations inside their dates', () => {
-  assert.deepEqual(lb.contests.map(c => c.name), ['Nines vs tens']);
-  const week2 = S.buildLeaderboard(donations, roster, config, contests, '2027-01-28').contests;
-  assert.deepEqual(week2.map(c => c.name), ['Week 2']);
-  assert.deepEqual(pairs(week2[0].rows), [
+test('contest boards: running contests count only donations inside their dates', () => {
+  const running = lb.contests.filter(c => c.status === 'running');
+  assert.deepEqual(running.map(c => c.name), ['Nines vs tens']);
+  assert.deepEqual(pairs(running[0].rows), [['9', 10, 1], ['10', 5, 2]]);
+  const week2 = S.buildLeaderboard(donations, roster, config, contests, '2027-01-28').contests.find(c => c.name === 'Week 2');
+  assert.equal(week2.status, 'running');
+  assert.deepEqual(pairs(week2.rows), [
     ['Flo F.', 4, 1], ['Gus G.', 3, 2], ['Hal H.', 3, 2], ['Ivy I.', 2, 4], ['Ned N.', 2, 4],
     ['Jo J.', 1, 6], ['Kit K.', 1, 6], ['Lu L.', 1, 6]
   ]);
-  const nines = lb.contests[0];
-  assert.deepEqual(pairs(nines.rows), [['9', 10, 1], ['10', 5, 2]]);
+});
+
+test('contest status on the day before, the first day, the last day and the day after', () => {
+  const statusOn = day => S.buildLeaderboard(donations, roster, config, contests, day).contests.find(c => c.name === 'Week 2').status;
+  assert.equal(statusOn('2027-01-24'), 'upcoming');
+  assert.equal(statusOn('2027-01-25'), 'running');
+  assert.equal(statusOn('2027-01-31'), 'running');
+  assert.equal(statusOn('2027-02-01'), 'finished');
+});
+
+test('finished contests name their winner; upcoming ones carry their start and prize', () => {
+  const withPrize = contests.map(c => c.name === 'Later' ? Object.assign({}, c, { prize: 'Pizza at the game' }) : c);
+  const all = S.buildLeaderboard(donations, roster, config, withPrize, TODAY).contests;
+  const week2 = all.find(c => c.name === 'Week 2');
+  assert.equal(week2.status, 'finished');
+  assert.deepEqual(week2.winners.map(w => [w.name, w.lb]), [['Flo F.', 4]]);
+  assert.equal(week2.rows, undefined, 'finished contests send only the winner');
+  assert.equal(week2.prize, '', 'a blank prize stays blank; the page says "to be announced"');
+  const later = all.find(c => c.name === 'Later');
+  assert.deepEqual([later.status, later.startDay, later.prize, later.winners, later.rows], ['upcoming', '2027-02-10', 'Pizza at the game', undefined, undefined]);
+});
+
+test('a tie for first gives several winners; a contest with no donations has none', () => {
+  const tie = { name: 'Tie', startDay: '2027-01-26', endDay: '2027-01-27', scope: 'student', filter: 'all', description: '' };
+  const empty = { name: 'Empty', startDay: '2027-02-15', endDay: '2027-02-16', scope: 'advisory', filter: 'all', description: '' };
+  const all = S.buildLeaderboard(donations, roster, config, [tie, empty], '2027-03-01').contests;
+  assert.deepEqual(all[0].winners.map(w => w.name), ['Gus G.', 'Hal H.']);
+  assert.deepEqual(all[1].winners, []);
 });
 
 test('name switch off: no full name and no email anywhere in the reply', () => {

@@ -296,6 +296,31 @@ p { margin: 0 0 8px; }
 .row .lb { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; white-space: nowrap; }
 .rows li:first-child .row { border-color: var(--gold); border-width: 2px; }
 
+/* ---- Contests box (mockup) ---- */
+.race-box { background: white; border: 2px solid var(--gold); border-radius: 12px; padding: 18px 22px; margin-bottom: 24px; box-shadow: var(--shadow); }
+.race-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.race-box h3 { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; color: var(--gold-dark); margin: 0; }
+.race-sub { font-size: 12px; color: var(--ink-muted); }
+.race-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.race-col h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--cav); margin: 0 0 2px; font-weight: 700; }
+.col-meta { font-size: 11px; color: var(--ink-muted); margin-bottom: 8px; line-height: 1.5; }
+.col-meta .prize { color: var(--gold-dark); font-weight: 600; }
+.race-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--cream-dark); font-size: 14px; }
+.race-row:last-child { border-bottom: none; }
+.race-row .r { font-family: 'Fraunces', serif; font-weight: 600; width: 18px; color: var(--ink-muted); flex-shrink: 0; }
+.race-row.first .r { color: var(--gold); }
+.race-row .nm { flex: 1; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.race-row .ct { font-family: 'Fraunces', serif; font-weight: 600; flex-shrink: 0; }
+.race-empty { text-align: center; color: var(--ink-muted); font-size: 14px; padding: 14px 6px; line-height: 1.6; }
+.race-empty strong { color: var(--cav); }
+.contest-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--cream-dark); }
+.chips-label { width: 100%; font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--ink-muted); font-weight: 600; margin-bottom: 2px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; border-radius: 999px; padding: 6px 13px; font-size: 12px; border: 1px solid var(--border); background: var(--cream); color: var(--ink-soft); }
+.chip.upcoming { border-color: var(--sage); background: var(--cav-light); }
+.chip.finished { border-color: var(--gold); background: var(--gold-light); color: var(--gold-dark); }
+.chip b { font-weight: 600; }
+@media (max-width: 540px) { .race-box { padding: 16px 15px; } .race-cols { grid-template-columns: 1fr; gap: 16px; } }
+
 /* ---- Find me ---- */
 #card {
   background: white; border: 1.5px solid var(--border); border-radius: 14px;

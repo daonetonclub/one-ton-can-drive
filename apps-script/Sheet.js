@@ -5,7 +5,7 @@ var TAB = { roster: 'Roster', donations: 'Donations', config: 'Config', contests
 
 var ROSTER_COLUMNS = ['id', 'name', 'grade', 'advisory', 'email', 'type', 'first_emailed'];
 var DONATION_COLUMNS = ['timestamp', 'person_id', 'name', 'cans', 'source', 'note', 'flag', 'reviewed'];
-var CONTEST_COLUMNS = ['name', 'start', 'end', 'scope', 'filter', 'description'];
+var CONTEST_COLUMNS = ['name', 'start', 'end', 'scope', 'filter', 'description', 'prize'];
 
 function spreadsheet() {
   var active = SpreadsheetApp.getActiveSpreadsheet();
@@ -78,7 +78,7 @@ function readContests() {
   return bodyRows(tab(TAB.contests)).map(function (row) {
     return { name: String(row[0]).trim(), startDay: asDay(row[1]), endDay: asDay(row[2]),
              scope: String(row[3]).trim().toLowerCase(), filter: String(row[4]).trim(),
-             description: String(row[5] || '').trim() };
+             description: String(row[5] || '').trim(), prize: String(row[6] || '').trim() };
   }).filter(function (c) { return c.name && c.startDay && c.endDay; });
 }
 

@@ -217,13 +217,21 @@ function buildLeaderboard(donations, roster, config, contests, today) {
     students: named(students),
     faculty: named(topWithTies(board('faculty'), 1000)),
     staff: named(board('faculty')),
-    contests: contests
-      .filter(function (c) { return today >= c.startDay && today <= c.endDay; })
-      .map(function (c) {
-        var rows = standings(donations, roster, c.scope, c.startDay, c.endDay, c.filter);
-        return { name: c.name, description: c.description, scope: c.scope, endDay: c.endDay,
-                 rows: named(c.scope === 'student' || c.scope === 'faculty' ? topWithTies(rows, 10) : rows) };
-      })
+    contests: contests.map(function (c) {
+      // upcoming / running / finished, from today and the contest's own dates.
+      var status = today < c.startDay ? 'upcoming' : today > c.endDay ? 'finished' : 'running';
+      var out = { name: c.name, description: c.description, scope: c.scope, filter: c.filter,
+                  startDay: c.startDay, endDay: c.endDay, prize: c.prize || '', status: status };
+      if (status === 'upcoming') return out;
+      var rows = named(standings(donations, roster, c.scope, c.startDay, c.endDay, c.filter));
+      if (status === 'running') {
+        out.rows = c.scope === 'student' || c.scope === 'faculty' ? topWithTies(rows, 10) : rows;
+      } else {
+        // Everyone tied for first is a winner. Nobody with zero wins.
+        out.winners = rows.filter(function (r) { return r.rank === 1 && r.total > 0; });
+      }
+      return out;
+    })
   };
 }
 

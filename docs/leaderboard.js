@@ -69,7 +69,7 @@
   function drawTracker() {
     var goal = data.goalLb || 1;
     $('total').textContent = fmt(data.totalLb);
-    $('goal').textContent = fmt(data.totalLb) + ' lb of ' + fmt(goal) + ' lb';
+    $('goal').textContent = fmt(data.totalLb) + ' lbs of ' + fmt(goal) + ' lbs';
     $('lb-date').textContent = dayStamp();
 
     // The bar keeps going past the goal: the scale grows to fit the total.
@@ -114,6 +114,95 @@
       ? 'Includes ' + fmt(data.facultyLb) + ' lb from faculty and staff.' : '';
   }
 
+  // ---- Contests box (from the mockup) ----
+  // Running contests with their prize and top 3; then coming up and finished.
+
+  function scopeLabel(c) {
+    var grades = String(c.filter || 'all').toLowerCase() === 'all' ? '' : String(c.filter).split(',')
+      .map(function (g) { return g.trim(); }).join(' and ');
+    if (c.scope === 'faculty') return 'Faculty and staff';
+    if (c.scope === 'grade') return grades ? 'Grades ' + grades : 'Grades';
+    if (c.scope === 'advisory') return grades ? 'Grade ' + grades + ' advisories' : 'Advisories';
+    return grades ? 'Grade ' + grades + ' students' : 'All students';
+  }
+
+  // "A", "A and B", "A, B and C"
+  function listNames(names) {
+    return names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+  }
+
+  function contestLabel(c, r) { return c.scope === 'grade' ? 'Grade ' + r.name : r.name; }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  function drawRaceBox() {
+    var box = $('race-box');
+    box.innerHTML = '';
+    var all = data.contests || [];
+    var running = all.filter(function (c) { return c.status === 'running'; });
+    var later = all.filter(function (c) { return c.status !== 'running'; });
+
+    var head = el('div', 'race-head');
+    head.appendChild(el('h3', '', '🔥 Live contests'));
+    head.appendChild(el('span', 'race-sub', "Same donations, filtered by dates and who's in them"));
+    box.appendChild(head);
+
+    if (running.length) {
+      var cols = el('div', 'race-cols');
+      running.forEach(function (c) {
+        var col = el('div', 'race-col');
+        col.appendChild(el('h4', '', c.name));
+        var meta = el('div', 'col-meta', scopeLabel(c) + ' · ' + longDate(c.startDay) + ' to ' + longDate(c.endDay) + ' · ');
+        meta.appendChild(el('span', 'prize', c.prize ? c.prize : 'Prize: to be announced'));
+        col.appendChild(meta);
+        var top = (c.rows || []).filter(function (r) { return r.total > 0; }).slice(0, 3);
+        if (!top.length) col.appendChild(el('div', 'race-empty', 'No donations yet. Be first.'));
+        top.forEach(function (r) {
+          var row = el('div', 'race-row' + (r.rank === 1 ? ' first' : ''));
+          row.appendChild(el('span', 'r', String(r.rank)));
+          row.appendChild(el('span', 'nm', contestLabel(c, r)));
+          row.appendChild(el('span', 'ct', fmt(r.lb) + ' lbs'));
+          col.appendChild(row);
+        });
+        cols.appendChild(col);
+      });
+      box.appendChild(cols);
+    } else {
+      var empty = el('div', 'race-empty');
+      empty.appendChild(el('strong', '', 'No contests running right now.'));
+      empty.appendChild(document.createElement('br'));
+      empty.appendChild(document.createTextNode('When one starts, it shows up here on its own, and every can donated during its dates counts toward it.'));
+      box.appendChild(empty);
+    }
+
+    if (later.length) {
+      var chips = el('div', 'contest-chips');
+      chips.appendChild(el('div', 'chips-label', 'Coming up & finished'));
+      later.filter(function (c) { return c.status === 'upcoming'; }).forEach(function (c) {
+        var chip = el('span', 'chip upcoming', '📅 ');
+        chip.appendChild(el('b', '', c.name));
+        chip.appendChild(document.createTextNode(' starts ' + longDate(c.startDay) + (c.prize ? ' · ' + c.prize : '')));
+        chips.appendChild(chip);
+      });
+      later.filter(function (c) { return c.status === 'finished'; }).forEach(function (c) {
+        var w = c.winners || [];
+        var who = !w.length ? 'no winner'
+          : 'won by ' + listNames(w.map(function (r) { return contestLabel(c, r); })) +
+            ' (' + (w.length > 1 ? 'tied, ' : '') + fmt(w[0].lb) + ' lbs)';
+        var chip = el('span', 'chip finished', '🏆 ');
+        chip.appendChild(el('b', '', c.name));
+        chip.appendChild(document.createTextNode(' ' + who));
+        chips.appendChild(chip);
+      });
+      box.appendChild(chips);
+    }
+  }
+
   // ---- Tabs and boards ----
 
   function tabs() {
@@ -124,7 +213,9 @@
       { key: 'faculty', label: 'Faculty' },
       { key: 'findme', label: 'Find me' }
     ];
-    (data.contests || []).forEach(function (c, i) { list.push({ key: 'contest' + i, label: c.name }); });
+    (data.contests || []).forEach(function (c, i) {
+      if (c.status === 'running') list.push({ key: 'contest' + i, label: c.name });
+    });
     return list;
   }
 
@@ -428,6 +519,7 @@
       $('error').hidden = true;
       $('board').hidden = false;
       drawTracker();
+      drawRaceBox();
       drawTabs();
       drawView();
       $('updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) +

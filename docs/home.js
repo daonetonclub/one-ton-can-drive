@@ -18,7 +18,7 @@
       if (data.startDay && data.endDay) {
         $('eyebrow').textContent = 'Durham Academy · ' + shortDate(data.startDay) + ' to ' + shortDate(data.endDay);
       }
-      var running = (data.contests || []).length;
+      var running = (data.contests || []).filter(function (c) { return c.status === 'running'; }).length;
       $('tagline').textContent = 'One school. One goal. One ton of cans. ' + (running
         ? running + (running === 1 ? ' contest' : ' contests') + ' running right now, and every can counts toward all of them.'
         : 'Every can counts.');
