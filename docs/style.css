@@ -143,20 +143,21 @@ body:has(main.wide) .top-inner { max-width: 720px; }
 body.tv .top { display: none; }
 body.tv main { max-width: none; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3vh 5vw; }
 #tv { width: 100%; text-align: center; }
-.tv-title { font-family: 'Fraunces', serif; font-size: 2.6vw; font-weight: 600; color: var(--cav); margin: 0; }
-.tv-total { font-family: 'Fraunces', serif; font-size: 9vw; font-weight: 600; color: var(--cav); line-height: 1; margin: 1vh 0 0; }
-.tv-goal { font-size: 1.8vw; color: var(--ink-muted); margin: 0.5vh 0 2vh; }
+.tv-title { font-family: 'Fraunces', serif; font-size: 2.2vw; font-weight: 600; color: var(--cav); margin: 0; }
+.tv-total { font-family: 'Fraunces', serif; font-size: 7vw; font-weight: 600; color: var(--cav); line-height: 1; margin: 0.5vh 0 0; }
+.tv-goal { font-size: 1.6vw; color: var(--ink-muted); margin: 0.5vh 0 1.5vh; }
 .tv-bar { height: 3vh; border-radius: 1.5vh; }
 .tv-bar .bar-fill { border-radius: 1.5vh; }
 .tv-marks { height: 3vh; font-size: 1.3vw; margin-top: 0.5vh; }
-.tv-boards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2.5vw; margin-top: 2.5vh; text-align: left; }
+.tv-boards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2.5vw; margin-top: 1.5vh; text-align: left; }
 .tv-boards h3 { font-family: 'Fraunces', serif; font-size: 1.9vw; color: var(--cav); margin: 0 0 1vh; }
 .tv-list { list-style: none; margin: 0; padding: 0; }
 .tv-list li {
-  display: flex; gap: 1vw; align-items: baseline; font-size: 1.55vw; padding: 0.7vh 1vw;
-  background: white; border: 1.5px solid var(--border); border-radius: 0.8vw; margin-bottom: 0.8vh;
+  display: flex; gap: 1vw; align-items: baseline; font-size: 1.4vw; padding: 0.4vh 1vw;
+  background: white; border: 1.5px solid var(--border); border-radius: 0.8vw; margin-bottom: 0.6vh;
 }
 .tv-list .rank { font-family: 'Fraunces', serif; font-weight: 600; color: var(--cav); min-width: 2.6vw; }
 .tv-list .name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tv-list .lb { font-family: 'Fraunces', serif; font-weight: 600; }
-.tv-stamp { font-size: 1.7vw; font-weight: 500; margin: 2vh 0 0; }
+.tv-list li.more { background: none; border: 0; color: var(--ink-muted); }
+.tv-stamp { font-size: 1.6vw; font-weight: 500; margin: 1.5vh 0 0; }

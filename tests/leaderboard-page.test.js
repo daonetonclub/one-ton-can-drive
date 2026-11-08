@@ -290,3 +290,20 @@ test('hallway screen before the start and after the end', async () => {
   assert.match(await page.locator('#tv-stamp').textContent(), /^Final total\. The drive ended /);
   await context.close();
 });
+
+test('hallway screen: a big tie shows 8 rows and "+ N more tied", and still fits', async () => {
+  // 20 students with 1 can each: all tied at #1.
+  const many = Array.from({ length: 20 }, (_, i) => P('m' + i, 'Kid Number' + i, 9, 'Maple'));
+  const saved = roster.splice(0, roster.length, ...many);
+  const savedGifts = donations.splice(0, donations.length, ...many.map(p => G(p.id, 1, -1)));
+  try {
+    const { page, context } = await openTv();
+    assert.equal(await page.locator('#tv-students li:not(.more)').count(), 8);
+    assert.equal(await page.locator('#tv-students li.more').textContent(), '+ 12 more tied at #1');
+    assert.equal(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight), true);
+    await context.close();
+  } finally {
+    roster.splice(0, roster.length, ...saved);
+    donations.splice(0, donations.length, ...savedGifts);
+  }
+});

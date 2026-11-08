@@ -8,6 +8,7 @@
   // ?tv=1 is the hallway screen: one big number, screenshotted for the
   // Learning Commons slideshow. It never claims to update live.
   var TV = /[?&]tv=1(&|$)/.test(location.search);
+  var TV_MAX_ROWS = 8;
 
   var data = null;
   var tab = 'grades';
@@ -338,7 +339,9 @@
       empty.textContent = 'Nobody yet.';
       list.appendChild(empty);
     }
-    rows.forEach(function (r) {
+    // At most 8 rows so the screenshot always fits the TV (decision 22).
+    var hidden = rows.slice(TV_MAX_ROWS);
+    rows.slice(0, TV_MAX_ROWS).forEach(function (r) {
       var li = document.createElement('li');
       li.innerHTML = '<span class="rank"></span><span class="name"></span><span class="lb"></span>';
       li.querySelector('.rank').textContent = '#' + r.rank;
@@ -346,6 +349,13 @@
       li.querySelector('.lb').textContent = fmt(r.lb) + ' lb';
       list.appendChild(li);
     });
+    if (hidden.length) {
+      var more = document.createElement('li');
+      more.className = 'more';
+      var sameRank = hidden.every(function (r) { return r.rank === hidden[0].rank; });
+      more.textContent = '+ ' + hidden.length + ' more ' + (sameRank ? 'tied at #' + hidden[0].rank : 'in the top 5');
+      list.appendChild(more);
+    }
   }
 
   function drawTv() {
