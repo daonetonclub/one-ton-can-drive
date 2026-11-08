@@ -2,7 +2,7 @@
 
 This file is the source of truth for what we are building, and the living version of the spec. It wins over the original spec PDF and the mockup, which are kept unchanged for reference. Decisions and their reasons are in `DECISIONS.md`. Every change to the plan is logged with a date in "What changed" at the bottom.
 
-**Status:** Phases 1 to 3 done (7 November 2026). Live: donation page https://daonetonclub.github.io/one-ton-can-drive/ and leaderboard https://daonetonclub.github.io/one-ton-can-drive/leaderboard.html. Next: Phase 4.
+**Status:** Phases 1 to 3 done (7 November 2026). Phase 4: Find me, the faculty path and the hallway screen done (8 November 2026); the first-donation email and the "Give money" page are waiting on the school. Live: donation page https://daonetonclub.github.io/one-ton-can-drive/, leaderboard https://daonetonclub.github.io/one-ton-can-drive/leaderboard.html, hallway screen https://daonetonclub.github.io/one-ton-can-drive/leaderboard.html?tv=1. Next: Phase 5 (or the two waiting extras, if answers arrive first).
 
 ## 1. The Google Sheet
 
@@ -131,7 +131,7 @@ Built after the main donation page and leaderboard, in this order. Each is optio
 1. **Find me** (see section 3).
 2. **Faculty path and faculty board.** The small "Faculty and staff" link on the grade screen, then pick your name from the faculty list. Faculty donations count toward the ton but only on the faculty board.
 3. **First-donation email.** Only if the technology office approves (see section 2).
-4. **Hallway screen** at `?tv=1`. One big number in pounds with a date stamp ("Standings as of Feb 14, day 27 of 45"). Never claims to update live. Screenshot sent to the Learning Commons, expected weekly.
+4. **Hallway screen** at `?tv=1` (decisions 21 and 22). The big number in pounds with the goal bar, then three short boards: all grades, the top 5 advisories and the top 5 students (ties included, at most 8 rows per list, then "+ N more tied at #5"). The date stamp reads "Standings as of Feb 14, day 27 of 45". Names follow the privacy switch. It never claims to update live, and doesn't refresh itself. Screenshot sent to the Learning Commons, expected weekly. Not linked anywhere; bookmark it.
 5. **"Give money" page.** Only once the school confirms how money is collected. Links to the school's official page; never shows or collects payment details.
 
 Not in version one: the `?admin=1` organizer page (the Sheet does this job), a participation leaderboard section, a share card, a recent-donations ticker, a weekly email to advisors, organizer bulk entry, typed-in names.
@@ -165,7 +165,12 @@ Each phase needs its tests passing, and Ben checking it on his phone, before the
 - **Not checked live yet:** a contest tab (the Contests tab is empty). Optional: add one row to see it.
 
 ### Phase 4: extras
-- In the order in section 4. First-donation email test: donate from a phone and a laptop under the same name and get exactly one email.
+In the order in section 4. Each extra was built, tested and checked by Ben before the next.
+- **Find me: done 8 November 2026.** A Find me tab on the leaderboard searches every student and staff member, including people with nothing donated. The person card shows ranks in advisory, grade and school (staff: the faculty board), pounds so far, donation history, and "N more cans puts you at #X, past Y people." It opens on the person this browser remembers. Server: `personReport` in `apps-script/Standings.js` behind a new `person` action; the leaderboard reply adds the full staff list. Tests: 7 known-answer, 4 browser, 1 live (no emails). Ben checked a donor (Riley) and someone with nothing (Nova Nobody, added to the fake roster by Ben).
+- **Faculty path: done 8 November 2026.** A "Faculty and staff" link under the grade buttons opens the staff list with search. The done screen says "on the faculty board" and shows no advisory. Staff are remembered like students. Tests: 2 browser. Ben logged cans as Pat T., saw #3 to #1 on the faculty board, and Find me opened on Pat.
+- **First-donation email: waiting** on the technology office (Mr. Beck). Test when built: donate from a phone and a laptop under the same name and get exactly one email.
+- **Hallway screen: done 8 November 2026.** Tests: 4 browser (boards, date stamp and day count, no full names, nothing claims to update live, fits 1920x1080 even with a 20-way tie, starts and final messages). Ben checked it on a laptop.
+- **"Give money" page: waiting** on how the school collects money.
 
 ### Phase 5: real data and rehearsal (by about December 12)
 - **Steps:** move the fake test donations and fake roster rows into an archive tab (never deleted); the real roster goes into the Sheet only; print the QR code and scan it across a room; dry run with 5 to 10 real students; fix what breaks; teach one other member to fix a row in the Sheet.
@@ -186,6 +191,13 @@ Each phase needs its tests passing, and Ben checking it on his phone, before the
 ## What changed
 
 Newest first. Every change to this plan gets a dated line here, saying what changed and why.
+
+- **8 November 2026, Phase 4 (first three extras) finished.**
+  - **Hallway screen changed** from one big number (decision 5) to the big number plus short boards for grades, top 5 advisories and top 5 students (decision 21). Ben asked for names, advisories and grades on it. Each list shows at most 8 rows, then "+ N more tied", so a big tie on launch day can't push it off the screen (decision 22).
+  - **Fake roster is now 21 people:** Ben added S017 Nova Nobody (grade 9, Maple) to test Find me with someone who has donated nothing.
+  - Find me's move-up line counts to the next distinct total, as everywhere else. A remembered person only reopens in the same browser that donated (browser storage is per browser).
+  - GitHub Pages lets browsers keep a page for up to 10 minutes, so right after an update a reload may still show the old version. Ctrl+Shift+R (Cmd+Shift+R on a Mac) gets the new one.
+  - The first-donation email and the "Give money" page were not built in this round. Both are waiting on answers from the school.
 
 - **7 November 2026, Phase 3 finished.**
   - Two Config cells were wrong since setup and were repaired with a one-time `fixConfigCells`. **Milestones:** Sheets read "500,1000,1500,2000" as one big number, so setup now writes it as plain text ("500, 1000, 1500, 2000"). **End date:** it was written while the Sheet was on Pacific time and became March 3 when the Sheet moved to Eastern. It's back to 4 March 2027. The leaderboard found both.

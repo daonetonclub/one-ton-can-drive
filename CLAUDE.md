@@ -31,7 +31,7 @@ Ben is a high school student building the One Ton Can Drive website for the One 
 - Never store a total. Every number is computed from the Donations tab.
 - One `standings(scope, startDate, endDate, filter)` function behind every board and every contest.
 - Every write to the Donations tab happens inside LockService.
-- Student emails never leave the Sheet. `getRoster` returns `id`, name, grade and advisory only. No real student data in the code or on GitHub, ever. Use a fake 20-person roster until Phase 5.
+- Student emails never leave the Sheet. `getRoster` returns `id`, name, grade and advisory only. No real student data in the code or on GitHub, ever. Use the fake roster (20 people plus S017 Nova Nobody) until Phase 5.
 - A donation's rank before and after is computed in ONE server call, not three calls from the browser. Only the write is locked; "before" is the log without the new donation (decision 20).
 - The first-donation email has an on/off switch in Config and is checked server-side against the Roster `first_emailed` column, never with a browser cookie. It contains only the name, the cans and who to contact; it has no confirm button. Don't add anything to it without Ben telling the technology office.
 - Dates, goal, milestones, pounds per can, switches and contests live in the Config and Contests tabs, never hard-coded.
@@ -49,6 +49,7 @@ Ben is a high school student building the One Ton Can Drive website for the One 
 - After `clasp push`, update the existing deployment: `npx clasp update-deployment AKfycbwc4fukEa6Jh_hT4Qhl1_Bt3mZvgFsDJb1kU7FMVnyzrSAeZZrEqOAxVerIdW_zchk`. Never `create-deployment` again.
 - Functions that change the Sheet's layout or fix cells (`setupSheet`, `tidyDonations`, `fixConfigCells`) are run by Ben from the Apps Script editor, not from the web address.
 - Sheets turns "500,1000,1500,2000" into one number. Any list in a cell must be written as plain text (`setNumberFormat('@')`). Set the Sheet's time zone before writing any date, or the date shifts by a day.
+- GitHub Pages lets browsers keep pages for up to 10 minutes. After a site update, tell Ben to hard-reload (Ctrl+Shift+R or Cmd+Shift+R) before checking.
 - Claude can read a tab read-only with the clasp sign-in (Sheets "gviz" CSV export) instead of asking Ben to scroll. Only ever on the fake data; once real students are in, ask first.
 
 ## Phases
