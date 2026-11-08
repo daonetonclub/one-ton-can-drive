@@ -22,7 +22,8 @@ const ROSTER = [
   { id: 'S002', name: 'Jordan M.', grade: 9, advisory: 'Maple' },
   { id: 'S003', name: 'Riley S.', grade: 9, advisory: 'Birch' },
   { id: 'S005', name: 'Morgan F.', grade: 10, advisory: 'Cedar' },
-  { id: 'F001', name: 'Pat T.', grade: '', advisory: '' }
+  { id: 'F001', name: 'Pat T.', grade: '', advisory: '' },
+  { id: 'F002', name: 'Lee S.', grade: '', advisory: '' }
 ];
 
 // A pretend server. Each test can change how it answers.
@@ -42,7 +43,7 @@ function fakeServer(options) {
       const person = ROSTER.find(p => p.id === body.person);
       reply = { ok: true, cans: body.cans, poundsPerCan: 1, name: person.name,
                 before: { rank: 4, total: 3 }, after: { rank: 2, total: 3 + body.cans }, passed: 2,
-                advisory: { name: person.advisory, rank: 1, total: 12, donors: 2, size: 2 } };
+                advisory: person.advisory ? { name: person.advisory, rank: 1, total: 12, donors: 2, size: 2 } : null };
     }
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(reply) });
   }
@@ -257,5 +258,37 @@ test('the page never shows an email address', async () => {
   await page.click('#submit');
   await page.locator('#screen-done').waitFor();
   assert.doesNotMatch(await page.locator('body').innerText(), /@/);
+  await context.close();
+});
+
+// Faculty and staff path
+
+test('faculty link leads to the staff list, with search', async () => {
+  const { page, context } = await open();
+  await page.locator('#screen-grade').waitFor();
+  await page.click('[data-action=staff]');
+  await page.locator('#screen-staff').waitFor();
+  assert.deepEqual(await page.locator('#staff-list button').allTextContents(), ['Lee S.', 'Pat T.']);
+  await page.fill('#staff-search', 'pat');
+  assert.deepEqual(await page.locator('#staff-list button').allTextContents(), ['Pat T.']);
+  await context.close();
+});
+
+test('a staff donation shows the faculty rank and no advisory, and is remembered', async () => {
+  const { page, fake, context } = await open();
+  await page.locator('#screen-grade').waitFor();
+  await page.click('[data-action=staff]');
+  await page.getByRole('button', { name: 'Pat T.' }).click();
+  assert.equal(await page.locator('#cans-who').textContent(), 'Pat T. · Faculty and staff');
+  await page.fill('#cans', '8');
+  await page.click('#submit');
+  await page.locator('#screen-done').waitFor();
+  assert.equal(fake.state.saves[0].person, 'F001');
+  const text = await page.locator('#screen-done').innerText();
+  assert.match(text, /You moved from #4 to #2 on the faculty board\./);
+  assert.doesNotMatch(text, /advisory/);
+  await page.reload();
+  await page.locator('#screen-cans').waitFor();
+  assert.equal(await page.locator('#cans-who').textContent(), 'Pat T. · Faculty and staff');
   await context.close();
 });

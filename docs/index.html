@@ -36,6 +36,15 @@
   <section class="screen" id="screen-grade" hidden>
     <h2>What grade are you in?</h2>
     <div class="grade-grid" id="grade-list"></div>
+    <p class="center"><button class="link" data-action="staff">Faculty and staff</button></p>
+  </section>
+
+  <section class="screen" id="screen-staff" hidden>
+    <button class="back" data-action="back-to-grade">← Grade</button>
+    <h2>Find your name</h2>
+    <input class="search" id="staff-search" type="search" placeholder="Search faculty and staff" autocomplete="off">
+    <div class="list" id="staff-list"></div>
+    <p class="muted small">Not on the list? <a class="not-listed" href="#">Tell the One Ton Club.</a></p>
   </section>
 
   <section class="screen" id="screen-advisory" hidden>
@@ -49,7 +58,7 @@
     <h2>Find your name</h2>
     <input class="search" id="name-search" type="search" placeholder="Search your advisory" autocomplete="off">
     <div class="list" id="name-list"></div>
-    <p class="muted small">Not on the list? <a id="not-listed" href="#">Tell the One Ton Club.</a></p>
+    <p class="muted small">Not on the list? <a class="not-listed" href="#">Tell the One Ton Club.</a></p>
   </section>
 
   <section class="screen" id="screen-cans" hidden>

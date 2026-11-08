@@ -10,7 +10,7 @@
   var CONFIRM_AT = 20;
   var DIDNT_SAVE = "That didn't save. Your cans were not counted yet. Try again.";
 
-  var roster = [];
+  var roster = [];      // everyone: students have a grade and advisory, staff don't
   var picked = { grade: null, advisory: null };
   var me = null;        // { id, name, grade, advisory }
   var pending = null;   // { code, cans, personId } kept across retries
@@ -60,6 +60,8 @@
     return b;
   }
 
+  function isStudent(p) { return p.grade !== '' && !!p.advisory; }
+
   function unique(list) {
     return list.filter(function (v, i) { return v !== '' && list.indexOf(v) === i; });
   }
@@ -69,7 +71,7 @@
   function showGrades() {
     var list = $('grade-list');
     list.innerHTML = '';
-    var grades = unique(roster.map(function (p) { return p.grade; })).sort(function (a, b) { return a - b; });
+    var grades = unique(roster.filter(isStudent).map(function (p) { return p.grade; })).sort(function (a, b) { return a - b; });
     grades.forEach(function (g) {
       list.appendChild(button(String(g), function () { picked.grade = g; showAdvisories(); }, GRADE_NAMES[g] || ''));
     });
@@ -106,10 +108,30 @@
       });
   }
 
+  // Faculty and staff: one list with a search box. They count toward the ton
+  // but only on the faculty board.
+  function showStaff() {
+    $('staff-search').value = '';
+    drawStaff('');
+    show('staff');
+  }
+
+  function drawStaff(search) {
+    var list = $('staff-list');
+    list.innerHTML = '';
+    var q = search.trim().toLowerCase();
+    roster.filter(function (p) {
+      return !isStudent(p) && (!q || p.name.toLowerCase().indexOf(q) !== -1);
+    }).sort(function (a, b) { return a.name.localeCompare(b.name); })
+      .forEach(function (p) {
+        list.appendChild(button(p.name, function () { choose(p, false); }));
+      });
+  }
+
   function choose(person, remembered) {
     me = { id: person.id, name: person.name, grade: person.grade, advisory: person.advisory };
     pending = null;
-    $('cans-who').textContent = me.name + (me.advisory ? ' · ' + me.advisory + ' advisory' : '');
+    $('cans-who').textContent = me.name + (me.advisory ? ' · ' + me.advisory + ' advisory' : ' · Faculty and staff');
     $('cans').value = '';
     hideMessage();
     $('confirm').hidden = true;
@@ -223,9 +245,10 @@
       ' They are already on the leaderboard.';
     var facts = [];
     if (r.before && r.after) {
-      if (r.before.total === 0) facts.push("You're on the board at #" + r.after.rank + '.');
-      else if (r.after.rank < r.before.rank) facts.push('You moved from #' + r.before.rank + ' to #' + r.after.rank + '.');
-      else facts.push("You're at #" + r.after.rank + '.');
+      var board = me && !me.advisory ? ' on the faculty board' : '';
+      if (r.before.total === 0) facts.push("You're on the board at #" + r.after.rank + board + '.');
+      else if (r.after.rank < r.before.rank) facts.push('You moved from #' + r.before.rank + ' to #' + r.after.rank + board + '.');
+      else facts.push("You're at #" + r.after.rank + board + '.');
     }
     if (r.passed > 0) facts.push('You passed ' + r.passed + (r.passed === 1 ? ' person.' : ' people.'));
     if (r.advisory) {
@@ -284,10 +307,12 @@
   // ---- Start ----
 
   function start() {
-    $('not-listed').href = 'mailto:' + ORGANIZER + '?subject=' + encodeURIComponent("I'm not on the One Ton list");
+    document.querySelectorAll('.not-listed').forEach(function (a) {
+      a.href = 'mailto:' + ORGANIZER + '?subject=' + encodeURIComponent("I'm not on the One Ton list");
+    });
     Promise.all([api({ action: 'roster' }), api({ action: 'leaderboard' })])
       .then(function (replies) {
-        roster = (replies[0].people || []).filter(function (p) { return p.grade !== '' && p.advisory; });
+        roster = replies[0].people || [];
         if (!applyStatus(replies[1])) return;
         var remembered = loadMe();
         var still = remembered && roster.filter(function (p) { return p.id === remembered.id; })[0];
@@ -305,6 +330,7 @@
     switch (target.getAttribute('data-action')) {
       case 'reload': location.reload(); break;
       case 'back-to-grade': showGrades(); break;
+      case 'staff': showStaff(); break;
       case 'back-to-advisory': showAdvisories(); break;
       case 'minus': tidyCans(); setCans(Math.max(currentCans() - 1, 1)); break;
       case 'plus': tidyCans(); setCans(Math.min(currentCans() + 1, MAX_CANS)); break;
@@ -328,6 +354,7 @@
   $('cans').addEventListener('input', function () { hideMessage(); $('confirm').hidden = true; $('submit').hidden = false; });
   $('cans').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
   $('name-search').addEventListener('input', function (e) { drawNames(e.target.value); });
+  $('staff-search').addEventListener('input', function (e) { drawStaff(e.target.value); });
 
   start();
 })();
