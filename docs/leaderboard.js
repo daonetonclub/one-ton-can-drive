@@ -329,6 +329,25 @@
     return Math.round((Date.UTC(+b[0], b[1] - 1, +b[2]) - Date.UTC(+a[0], a[1] - 1, +a[2])) / 86400000);
   }
 
+  function tvList(id, rows, label) {
+    var list = $(id);
+    list.innerHTML = '';
+    if (!rows.length) {
+      var empty = document.createElement('li');
+      empty.className = 'muted';
+      empty.textContent = 'Nobody yet.';
+      list.appendChild(empty);
+    }
+    rows.forEach(function (r) {
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="rank"></span><span class="name"></span><span class="lb"></span>';
+      li.querySelector('.rank').textContent = '#' + r.rank;
+      li.querySelector('.name').textContent = label(r);
+      li.querySelector('.lb').textContent = fmt(r.lb) + ' lb';
+      list.appendChild(li);
+    });
+  }
+
   function drawTv() {
     var goal = data.goalLb || 1;
     $('tv-total').textContent = fmt(data.totalLb) + ' lb';
@@ -345,6 +364,13 @@
       tick.textContent = fmt(m);
       marks.appendChild(tick);
     });
+
+    // Short boards (decision 21): all grades, the top 5 advisories and the top 5
+    // students, with everyone tied at #5 included. Names follow the switch.
+    var top5 = function (rows) { return rows.filter(function (r) { return r.total > 0 && r.rank <= 5; }); };
+    tvList('tv-grades', data.grades.filter(function (g) { return g.total > 0; }), function (g) { return 'Grade ' + g.name; });
+    tvList('tv-advisories', top5(data.advisories), function (a) { return a.name; });
+    tvList('tv-students', top5(data.topStudents), function (s) { return s.name; });
 
     // A screenshot with no date makes people doubt the number.
     var today = todayKey();

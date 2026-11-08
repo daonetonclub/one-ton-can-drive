@@ -254,16 +254,23 @@ async function openTv(options) {
   return { page, context };
 }
 
-test('hallway screen: one big number, a date stamp with the day count, no names', async () => {
+const tvRows = (page, id) => page.locator('#' + id + ' li').allInnerTexts()
+  .then(list => list.map(t => t.replace(/\s+/g, ' ').trim()));
+
+test('hallway screen: big number, date stamp with day count, and short boards (decision 21)', async () => {
   // Started 5 days ago (today is day 6), ends in 30 days (36 days in all).
   const { page, context } = await openTv();
   assert.equal(await page.locator('#tv-total').textContent(), '43 lb');
   assert.match(await page.locator('#tv-stamp').textContent(), /^Standings as of [A-Z][a-z]{2} \d{1,2}, day 6 of 36$/);
+  assert.deepEqual(await tvRows(page, 'tv-grades'), ['#1 Grade 9 24 lb', '#2 Grade 10 7 lb']);
+  assert.deepEqual(await tvRows(page, 'tv-advisories'), ['#1 Maple 17 lb', '#2 Birch 7 lb', '#2 Cedar 7 lb']);
+  assert.deepEqual(await tvRows(page, 'tv-students'),
+    ['#1 Ann A. 10 lb', '#2 Bo B. 7 lb', '#2 Cy C. 7 lb', '#4 Ed E. 5 lb', '#5 Flo F. 2 lb']);
   const text = await page.locator('body').innerText();
-  for (const p of roster) assert.equal(text.includes(p.name), false, p.name);
-  for (const short of ['Ann A.', 'Bo B.', 'Pat T.']) assert.equal(text.includes(short), false, short);
+  for (const p of roster) assert.equal(text.includes(p.name), false, 'no full name: ' + p.name);
+  assert.equal(text.includes('Pat T.'), false, 'faculty stay off the student board');
   assert.doesNotMatch(text, /live|refresh|updat/i, 'never claims to update live');
-  assert.equal(await page.locator('#board').isVisible(), false, 'no boards or tabs');
+  assert.equal(await page.locator('#board').isVisible(), false, 'no tabs');
   await context.close();
 });
 
