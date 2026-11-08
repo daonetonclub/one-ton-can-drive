@@ -5,6 +5,9 @@
   var API = window.ONE_TON.api;
   var STORE_KEY = 'oneTon.me';   // set by the donation page on this phone
   var REFRESH_MS = 2 * 60 * 1000;
+  // ?tv=1 is the hallway screen: one big number, screenshotted for the
+  // Learning Commons slideshow. It never claims to update live.
+  var TV = /[?&]tv=1(&|$)/.test(location.search);
 
   var data = null;
   var tab = 'grades';
@@ -319,12 +322,55 @@
     drawResults($('findme-input').value);
   });
 
+  // ---- Hallway screen ----
+
+  function daysFrom(fromDay, toDay) {
+    var a = fromDay.split('-'), b = toDay.split('-');
+    return Math.round((Date.UTC(+b[0], b[1] - 1, +b[2]) - Date.UTC(+a[0], a[1] - 1, +a[2])) / 86400000);
+  }
+
+  function drawTv() {
+    var goal = data.goalLb || 1;
+    $('tv-total').textContent = fmt(data.totalLb) + ' lb';
+    $('tv-goal').textContent = 'of ' + fmt(goal) + ' lb, one ton of food';
+    var scale = Math.max(goal, data.totalLb);
+    $('tv-fill').style.width = (100 * data.totalLb / scale) + '%';
+    $('tv-bar').classList.toggle('over', data.totalLb > goal);
+    var marks = $('tv-marks');
+    marks.innerHTML = '';
+    (data.milestones || []).forEach(function (m) {
+      var tick = document.createElement('span');
+      tick.className = 'mark' + (data.totalLb >= m ? ' reached' : '');
+      tick.style.left = (100 * m / scale) + '%';
+      tick.textContent = fmt(m);
+      marks.appendChild(tick);
+    });
+
+    // A screenshot with no date makes people doubt the number.
+    var today = todayKey();
+    var stamp;
+    if (data.startDay && today < data.startDay) {
+      stamp = 'The drive starts ' + longDate(data.startDay) + '.';
+    } else if (data.endDay && today > data.endDay) {
+      stamp = 'Final total. The drive ended ' + longDate(data.endDay) + '.';
+    } else {
+      stamp = 'Standings as of ' + longDate(today);
+      if (data.startDay && data.endDay) {
+        stamp += ', day ' + (daysFrom(data.startDay, today) + 1) + ' of ' + (daysFrom(data.startDay, data.endDay) + 1);
+      }
+    }
+    $('tv-stamp').textContent = stamp;
+    $('loading').hidden = true;
+    $('tv').hidden = false;
+  }
+
   // ---- Loading and refreshing ----
 
   function load() {
     return api({ action: 'leaderboard' }).then(function (reply) {
       if (!reply.ok) throw new Error('not ok');
       data = reply;
+      if (TV) return drawTv();
       $('loading').hidden = true;
       $('error').hidden = true;
       $('board').hidden = false;
@@ -338,6 +384,7 @@
     });
   }
 
+  if (TV) document.body.classList.add('tv');
   load();
-  setInterval(load, REFRESH_MS);
+  if (!TV) setInterval(load, REFRESH_MS);
 })();

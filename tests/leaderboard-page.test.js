@@ -239,3 +239,47 @@ test('Find me opens on you if this phone remembers you', async () => {
   assert.equal(await page.locator('#card-moveup').textContent(), "You're in first place.");
   await context.close();
 });
+
+// Hallway screen (?tv=1)
+
+async function openTv(options) {
+  const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+  const page = await context.newPage();
+  await page.route('https://script.google.com/**', r => r.fulfill({ contentType: 'application/json',
+    body: JSON.stringify(answer(JSON.parse(r.request().postData() || '{}'), options)) }));
+  await page.route('https://fonts.googleapis.com/**', r => r.abort());
+  await page.route('https://fonts.gstatic.com/**', r => r.abort());
+  await page.goto(base + 'leaderboard.html?tv=1');
+  await page.locator('#tv').waitFor();
+  return { page, context };
+}
+
+test('hallway screen: one big number, a date stamp with the day count, no names', async () => {
+  // Started 5 days ago (today is day 6), ends in 30 days (36 days in all).
+  const { page, context } = await openTv();
+  assert.equal(await page.locator('#tv-total').textContent(), '43 lb');
+  assert.match(await page.locator('#tv-stamp').textContent(), /^Standings as of [A-Z][a-z]{2} \d{1,2}, day 6 of 36$/);
+  const text = await page.locator('body').innerText();
+  for (const p of roster) assert.equal(text.includes(p.name), false, p.name);
+  for (const short of ['Ann A.', 'Bo B.', 'Pat T.']) assert.equal(text.includes(short), false, short);
+  assert.doesNotMatch(text, /live|refresh|updat/i, 'never claims to update live');
+  assert.equal(await page.locator('#board').isVisible(), false, 'no boards or tabs');
+  await context.close();
+});
+
+test('hallway screen fits a 1920x1080 TV without scrolling', async () => {
+  const { page, context } = await openTv();
+  const fits = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth &&
+    document.documentElement.scrollHeight <= window.innerHeight);
+  assert.equal(fits, true);
+  await context.close();
+});
+
+test('hallway screen before the start and after the end', async () => {
+  let { page, context } = await openTv({ startDay: day(3), endDay: day(40) });
+  assert.match(await page.locator('#tv-stamp').textContent(), /^The drive starts /);
+  await context.close();
+  ({ page, context } = await openTv({ startDay: day(-40), endDay: day(-2) }));
+  assert.match(await page.locator('#tv-stamp').textContent(), /^Final total\. The drive ended /);
+  await context.close();
+});

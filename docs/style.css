@@ -138,3 +138,15 @@ body:has(main.wide) .top-inner { max-width: 720px; }
 #card h3 { font-family: 'Fraunces', serif; color: var(--cav); margin: 18px 0 4px; }
 .card-total { font-family: 'Fraunces', serif; font-size: 34px; font-weight: 600; color: var(--cav); margin: 6px 0; }
 .moveup { padding: 12px 14px; background: var(--gold-light); border-radius: 10px; font-weight: 500; }
+
+/* ---- Hallway screen (?tv=1), sized for a 16:9 TV screenshot ---- */
+body.tv .top { display: none; }
+body.tv main { max-width: none; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 4vh 8vw; }
+#tv { width: 100%; text-align: center; }
+.tv-title { font-family: 'Fraunces', serif; font-size: 4vw; font-weight: 600; color: var(--cav); margin: 0; }
+.tv-total { font-family: 'Fraunces', serif; font-size: 14vw; font-weight: 600; color: var(--cav); line-height: 1; margin: 2vh 0 0; }
+.tv-goal { font-size: 2.6vw; color: var(--ink-muted); margin: 1vh 0 4vh; }
+.tv-bar { height: 4vh; border-radius: 2vh; }
+.tv-bar .bar-fill { border-radius: 2vh; }
+.tv-marks { height: 4vh; font-size: 1.8vw; margin-top: 1vh; }
+.tv-stamp { font-size: 2.4vw; font-weight: 500; margin: 4vh 0 0; }
