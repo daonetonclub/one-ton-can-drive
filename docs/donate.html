@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Log your cans · The One Ton Can Drive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="brand" href="./">One Ton<span class="brand-rest"> Can Drive</span></a>
+  <div class="links">
+    <a href="./">Home</a>
+    <a class="active" href="donate.html">Donate</a>
+    <a class="top-link" href="leaderboard.html">Leaderboard</a>
+  </div>
+</nav>
+
+<main class="page">
+  <!-- Shared header for the donation steps: grade chip, title, progress. -->
+  <div id="flow-head" hidden>
+    <div class="donate-header">
+      <span class="grade-badge" id="grade-badge" hidden></span>
+      <span class="title">Log your cans</span>
+    </div>
+    <div class="step-indicator" id="steps">
+      <span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span>
+    </div>
+  </div>
+
+  <section class="screen" id="screen-loading">
+    <p class="muted center">Loading…</p>
+  </section>
+
+  <section class="screen" id="screen-error" hidden>
+    <h2 class="screen-title">We can't reach the drive right now</h2>
+    <p class="screen-subtitle">Check your connection and try again.</p>
+    <button class="btn-primary" data-action="reload">Try again</button>
+  </section>
+
+  <section class="screen" id="screen-closed" hidden>
+    <h2 class="screen-title" id="closed-title"></h2>
+    <p class="screen-subtitle" id="closed-text"></p>
+    <a class="btn-primary as-link" href="leaderboard.html">See the leaderboard →</a>
+  </section>
+
+  <section class="screen" id="screen-grade" hidden>
+    <h2 class="screen-title">What grade are you in?</h2>
+    <p class="screen-subtitle">One QR code for the whole school. This is how we know whose team you're on.</p>
+    <div class="grade-grid" id="grade-list"></div>
+    <button class="faculty-link" data-action="staff">I teach here, I am not a student →</button>
+  </section>
+
+  <section class="screen" id="screen-staff" hidden>
+    <button class="back" data-action="back-to-grade">← Grade</button>
+    <h2 class="screen-title">Find your name</h2>
+    <p class="screen-subtitle">Faculty and staff count toward the ton, on their own board.</p>
+    <input class="search-box" id="staff-search" type="search" placeholder="Search faculty and staff" autocomplete="off">
+    <div class="option-list" id="staff-list"></div>
+    <p class="muted small">Not on the list? <a class="not-listed" href="#">Tell the One Ton Club.</a></p>
+  </section>
+
+  <section class="screen" id="screen-advisory" hidden>
+    <button class="back" data-action="back-to-grade">← Grade</button>
+    <h2 class="screen-title">Pick your advisory</h2>
+    <p class="screen-subtitle">Your cans count for your advisory too.</p>
+    <div class="option-list" id="advisory-list"></div>
+  </section>
+
+  <section class="screen" id="screen-name" hidden>
+    <button class="back" data-action="back-to-advisory">← Advisory</button>
+    <h2 class="screen-title">Find your name</h2>
+    <input class="search-box" id="name-search" type="search" placeholder="Search your advisory" autocomplete="off">
+    <div class="option-list" id="name-list"></div>
+    <p class="muted small">Not on the list? <a class="not-listed" href="#">Tell the One Ton Club.</a></p>
+  </section>
+
+  <section class="screen" id="screen-cans" hidden>
+    <div class="cans-input-wrap">
+      <p class="hey">Hey <em id="cans-first"></em></p>
+      <p class="who" id="cans-who"></p>
+      <p class="cans-label">How many cans did you drop in the bin? Tap the number to type it.</p>
+      <div class="cans-stepper">
+        <button class="step-btn" data-action="minus" aria-label="One fewer">−</button>
+        <input class="cans-input" id="cans" type="text" inputmode="numeric" autocomplete="off" aria-label="Number of cans" placeholder="0">
+        <button class="step-btn" data-action="plus" aria-label="One more">+</button>
+      </div>
+      <p class="cans-unit">cans</p>
+      <div class="cans-helper" id="quick"></div>
+      <p class="cans-max-note">50 cans max per entry. Brought more? Log it in two entries.</p>
+      <p class="cans-max-note">Take cans out of the case first: every can counts as one.</p>
+      <p class="message" id="cans-message" role="alert" hidden></p>
+
+      <div class="cans-confirm" id="confirm" hidden>
+        <p class="cc-q" id="confirm-text"></p>
+        <div class="cc-buttons">
+          <button class="cc-yes" data-action="confirm-yes">Yes</button>
+          <button class="cc-no" data-action="confirm-fix">Let me fix it</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="honesty-note"><span class="hn-icon">🤝</span><span>Please count only what you actually brought. This food goes to real families, and the number on the tracker is the number we promise them.</span></p>
+    <button class="btn-primary" id="submit" data-action="submit">Count my cans</button>
+
+    <div class="remembered" id="remembered" hidden>
+      <p class="muted small">Use your own phone. It remembers you next time.</p>
+      <button class="btn-ghost quiet" data-action="not-me">Not you? Change name</button>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-done" hidden>
+    <div class="confirm-card">
+      <div class="check">✓</div>
+      <h2 class="screen-title">You're in.</h2>
+      <p id="done-summary"></p>
+      <div class="jump-box">
+        <p class="jb-hd">Where you landed</p>
+        <ul class="facts" id="done-facts"></ul>
+      </div>
+      <a class="btn-primary as-link" href="leaderboard.html">See the leaderboard →</a>
+      <button class="btn-ghost" data-action="log-more">Log more cans</button>
+      <a class="btn-ghost quiet" id="report" href="#">Something wrong with this entry?</a>
+    </div>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

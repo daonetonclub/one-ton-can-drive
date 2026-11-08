@@ -52,12 +52,25 @@
     });
   }
 
+  // "Nov 8 · day 2 of 118", or when the drive starts or ended.
+  function dayStamp() {
+    var today = todayKey();
+    if (data.startDay && today < data.startDay) return 'Starts ' + longDate(data.startDay);
+    if (data.endDay && today > data.endDay) return 'Final total · ended ' + longDate(data.endDay);
+    var text = longDate(today);
+    if (data.startDay && data.endDay) {
+      text += ' · day ' + (daysFrom(data.startDay, today) + 1) + ' of ' + (daysFrom(data.startDay, data.endDay) + 1);
+    }
+    return text;
+  }
+
   // ---- Tracker, pace line, "everyone brings five" ----
 
   function drawTracker() {
     var goal = data.goalLb || 1;
-    $('total').textContent = fmt(data.totalLb) + ' lb';
-    $('goal').textContent = 'of ' + fmt(goal) + ' lb';
+    $('total').textContent = fmt(data.totalLb);
+    $('goal').textContent = fmt(data.totalLb) + ' lb of ' + fmt(goal) + ' lb';
+    $('lb-date').textContent = dayStamp();
 
     // The bar keeps going past the goal: the scale grows to fit the total.
     var scale = Math.max(goal, data.totalLb);
@@ -67,11 +80,15 @@
     marks.innerHTML = '';
     (data.milestones || []).forEach(function (m) {
       var tick = document.createElement('span');
-      tick.className = 'mark' + (data.totalLb >= m ? ' reached' : '');
+      tick.className = 'ton-tick' + (data.totalLb >= m ? ' reached' : '');
       tick.style.left = (100 * m / scale) + '%';
-      tick.textContent = fmt(m);
+      tick.innerHTML = '<span class="mark"></span><span class="lab"></span>';
+      tick.querySelector('.lab').textContent = fmt(m);
       marks.appendChild(tick);
     });
+    var next = (data.milestones || []).filter(function (m) { return m > data.totalLb; })[0];
+    $('pct').textContent = Math.floor(100 * data.totalLb / goal) + '% to the ton' +
+      (next ? ' · next milestone ' + fmt(next) + ' lb' : '');
 
     var today = todayKey();
     var pace = $('pace');

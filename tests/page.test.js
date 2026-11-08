@@ -78,7 +78,7 @@ async function open(options) {
   await page.route('https://script.google.com/**', fake.handle);
   await page.route('https://fonts.googleapis.com/**', r => r.abort());
   await page.route('https://fonts.gstatic.com/**', r => r.abort());
-  await page.goto(base);
+  await page.goto(base + 'donate.html');
   return { page, fake, context };
 }
 
@@ -290,5 +290,55 @@ test('a staff donation shows the faculty rank and no advisory, and is remembered
   await page.reload();
   await page.locator('#screen-cans').waitFor();
   assert.equal(await page.locator('#cans-who').textContent(), 'Pat T. · Faculty and staff');
+  await context.close();
+});
+
+// Mockup layout (progress bar, grade chip, greeting) and the home page
+
+test('the progress bar and grade chip follow the steps', async () => {
+  const { page, context } = await open();
+  await page.locator('#screen-grade').waitFor();
+  const dots = () => page.locator('#steps .step-dot').evaluateAll(d => d.map(x => x.className.replace('step-dot', '').trim() || '-'));
+  assert.deepEqual(await dots(), ['active', '-', '-', '-']);
+  assert.equal(await page.locator('#grade-badge').isVisible(), false);
+  await page.getByRole('button', { name: /^9/ }).click();
+  assert.deepEqual(await dots(), ['done', 'active', '-', '-']);
+  assert.equal(await page.locator('#grade-badge').textContent(), 'Grade 9');
+  await page.getByRole('button', { name: 'Maple' }).click();
+  assert.deepEqual(await dots(), ['done', 'done', 'active', '-']);
+  await page.getByRole('button', { name: 'Avery T.' }).click();
+  assert.deepEqual(await dots(), ['done', 'done', 'done', 'active']);
+  assert.equal(await page.locator('#cans-first').textContent(), 'Avery');
+  await page.fill('#cans', '2');
+  await page.click('#submit');
+  await page.locator('#screen-done').waitFor();
+  assert.equal(await page.locator('#flow-head').isVisible(), false, 'no step bar on the done screen');
+  await context.close();
+});
+
+test('the home page links to donating and the leaderboard, with the drive dates', async () => {
+  const fake = fakeServer({ startDay: '2027-01-19', endDay: '2027-03-04' });
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  await page.route('https://script.google.com/**', fake.handle);
+  await page.route('https://fonts.googleapis.com/**', r => r.abort());
+  await page.route('https://fonts.gstatic.com/**', r => r.abort());
+  await page.goto(base);
+  await page.locator('#eyebrow', { hasText: 'Jan 19' }).waitFor();
+  assert.equal(await page.locator('#eyebrow').textContent(), 'Durham Academy · Jan 19 to Mar 4');
+  assert.equal(await page.getAttribute('.card-donate', 'href'), 'donate.html');
+  assert.equal(await page.getAttribute('.card-leaderboard', 'href'), 'leaderboard.html');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  await context.close();
+});
+
+test('no donation screen scrolls sideways at phone width', async () => {
+  const { page, context } = await open();
+  await page.setViewportSize({ width: 360, height: 780 });
+  await page.locator('#screen-grade').waitFor();
+  const fits = () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+  assert.equal(await fits(), true, 'grade');
+  await pickAvery(page);
+  assert.equal(await fits(), true, 'cans');
   await context.close();
 });

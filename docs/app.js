@@ -42,8 +42,23 @@
 
   // ---- Screens ----
 
+  // Which of the four progress dots each screen lights up (mockup step bar).
+  var STEP = { grade: 1, advisory: 2, staff: 2, name: 3, cans: 4 };
+
   function show(name) {
     document.querySelectorAll('.screen').forEach(function (s) { s.hidden = s.id !== 'screen-' + name; });
+    var step = STEP[name];
+    $('flow-head').hidden = !step;
+    if (step) {
+      document.querySelectorAll('#steps .step-dot').forEach(function (dot, i) {
+        dot.className = 'step-dot' + (i + 1 < step ? ' done' : i + 1 === step ? ' active' : '');
+      });
+      var badge = name === 'grade' ? '' : name === 'staff' ? 'Staff'
+        : name === 'cans' && me ? (me.grade ? 'Grade ' + me.grade : 'Staff')
+        : picked.grade ? 'Grade ' + picked.grade : '';
+      $('grade-badge').textContent = badge;
+      $('grade-badge').hidden = !badge;
+    }
     window.scrollTo(0, 0);
   }
 
@@ -73,7 +88,14 @@
     list.innerHTML = '';
     var grades = unique(roster.filter(isStudent).map(function (p) { return p.grade; })).sort(function (a, b) { return a - b; });
     grades.forEach(function (g) {
-      list.appendChild(button(String(g), function () { picked.grade = g; showAdvisories(); }, GRADE_NAMES[g] || ''));
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'grade-btn';
+      b.innerHTML = '<div class="num"></div><div class="lbl"></div>';
+      b.querySelector('.num').textContent = String(g);
+      b.querySelector('.lbl').textContent = GRADE_NAMES[g] || '';
+      b.addEventListener('click', function () { picked.grade = g; showAdvisories(); });
+      list.appendChild(b);
     });
     show('grade');
   }
@@ -131,6 +153,7 @@
   function choose(person, remembered) {
     me = { id: person.id, name: person.name, grade: person.grade, advisory: person.advisory };
     pending = null;
+    $('cans-first').textContent = me.name.split(' ')[0];
     $('cans-who').textContent = me.name + (me.advisory ? ' · ' + me.advisory + ' advisory' : ' · Faculty and staff');
     $('cans').value = '';
     hideMessage();

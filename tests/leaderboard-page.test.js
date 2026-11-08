@@ -87,8 +87,10 @@ const rowsText = page => page.locator('#rows li').allInnerTexts()
 
 test('tracker, pace line, everyone-brings-five and faculty line', async () => {
   const { page, context } = await open();
-  assert.equal(await page.locator('#total').textContent(), '43 lb');          // 31 student + 12 faculty
-  assert.equal(await page.locator('#goal').textContent(), 'of 2,000 lb');
+  assert.equal(await page.locator('#total').textContent(), '43');             // 31 student + 12 faculty
+  assert.equal(await page.locator('#goal').textContent(), '43 lb of 2,000 lb');
+  assert.equal(await page.locator('#pct').textContent(), '2% to the ton · next milestone 500 lb');
+  assert.match(await page.locator('#lb-date').textContent(), /^[A-Z][a-z]{2} \d{1,2} · day 6 of 36$/);
   assert.match(await page.locator('#five').textContent(), /^There are 6 of us\. If everyone brings 334, we hit the ton\.$/);
   assert.equal(await page.locator('#disclosure').textContent(), 'Includes 12 lb from faculty and staff.');
   assert.match(await page.locator('#pace').textContent(), /lb a day from here reaches 2,000 lb by .*Yesterday the school brought in 12 lb\./);
@@ -101,7 +103,9 @@ test('the bar keeps going past the goal', async () => {
   assert.equal(await page.locator('#bar').evaluate(e => e.classList.contains('over')), true);
   const fill = await page.locator('#bar-fill').evaluate(e => e.style.width);
   assert.equal(fill, '100%', 'the bar fills and the scale grows past the goal');
-  const goalMark = await page.locator('.mark').last().evaluate(e => parseFloat(e.style.left));
+  const goalMark = await page.locator('.ton-tick').last().evaluate(e => parseFloat(e.style.left));
+  assert.equal(await page.locator('.ton-tick.reached').count(), 2, 'both milestones reached get a star');
+  assert.equal(await page.locator('#pct').textContent(), '215% to the ton');
   assert.ok(goalMark < 100, 'the goal mark sits inside the bar, not at the end');
   assert.equal(await page.locator('#pace').textContent(), 'We hit the ton!');
   await context.close();
@@ -175,7 +179,7 @@ test('fits a phone with no sideways scrolling, and works on a laptop', async () 
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
   await context.close();
   ({ page, context } = await open({}, { width: 1280, height: 800 }));
-  assert.equal(await page.locator('#total').textContent(), '43 lb');
+  assert.equal(await page.locator('#total').textContent(), '43');
   await context.close();
 });
 
@@ -183,7 +187,7 @@ test('the donation page links to the leaderboard', async () => {
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.route('https://script.google.com/**', r => r.abort());
-  await page.goto(base + 'index.html');
+  await page.goto(base + 'donate.html');
   assert.equal(await page.getAttribute('.top-link', 'href'), 'leaderboard.html');
   assert.equal(await page.locator('#screen-done a.btn-primary').getAttribute('href'), 'leaderboard.html');
   await context.close();
