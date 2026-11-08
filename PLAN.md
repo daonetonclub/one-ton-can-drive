@@ -54,7 +54,7 @@ Settings changed without touching code.
 | Goal | 2,000 lb |
 | Milestones | 500, 1,000, 1,500, 2,000 |
 | Pounds per can | 1 (correct after the food bank weighs the first pickup) |
-| Full names | Off (first name + last initial) until written approval |
+| Full names | On since 8 November 2026 (decision 23), while only fake people are in the Sheet. **Must be off before the real roster goes in, unless written administrator approval is in hand.** |
 | First-donation email | Off until the technology office approves |
 | Bin locations | To be decided with facilities, December |
 
@@ -173,6 +173,7 @@ In the order in section 4. Each extra was built, tested and checked by Ben befor
 - **"Give money" page: waiting** on how the school collects money.
 
 ### Phase 5: real data and rehearsal (by about December 12)
+- **Gate before anything else (decision 23):** written administrator approval for full names is in hand, or set Config full_names to FALSE.
 - **Steps:** move the fake test donations and fake roster rows into an archive tab (never deleted); the real roster goes into the Sheet only; print the QR code and scan it across a room; dry run with 5 to 10 real students; fix what breaks; teach one other member to fix a row in the Sheet.
 - **Tests:** search the GitHub code for any real student name or email and find none; a second dry run with no new problems.
 
@@ -191,6 +192,8 @@ In the order in section 4. Each extra was built, tested and checked by Ben befor
 ## What changed
 
 Newest first. Every change to this plan gets a dated line here, saying what changed and why.
+
+- **8 November 2026, full names switched on (decision 23).** Ben chose to show full first and last names now. Only fake people are in the Sheet, so no real names are shown yet. Phase 5 starts with a gate: written administrator approval for full names, or the switch goes back off before real students are added. The spec requires administrator approval for names on a public page.
 
 - **8 November 2026, Phase 4 (first three extras) finished.**
   - **Hallway screen changed** from one big number (decision 5) to the big number plus short boards for grades, top 5 advisories and top 5 students (decision 21). Ben asked for names, advisories and grades on it. Each list shows at most 8 rows, then "+ N more tied", so a big tie on launch day can't push it off the screen (decision 22).

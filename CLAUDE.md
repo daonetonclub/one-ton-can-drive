@@ -36,6 +36,7 @@ Ben is a high school student building the One Ton Can Drive website for the One 
 - The first-donation email has an on/off switch in Config and is checked server-side against the Roster `first_emailed` column, never with a browser cookie. It contains only the name, the cans and who to contact; it has no confirm button. Don't add anything to it without Ben telling the technology office.
 - Dates, goal, milestones, pounds per can, switches and contests live in the Config and Contests tabs, never hard-coded.
 - Names come from the roster only. No free-text name entry anywhere.
+- Before the real roster goes into the Sheet, check the full-names gate (decision 23): written administrator approval for full names is in hand, or Config full_names is FALSE. Ask Ben which, and don't help load real names until one is true.
 - The site shows pounds; students enter cans.
 
 ## Known Apps Script traps
