@@ -56,7 +56,7 @@ let base;
 
 test.before(async () => {
   server = http.createServer((req, res) => {
-    const file = path.join(DOCS, decodeURIComponent(req.url.split('?')[0]) === '/' ? 'index.html' : req.url.split('?')[0]);
+    const file = path.join(DOCS, req.url.split('?')[0] === '/' ? 'index.html' : decodeURIComponent(req.url.split('?')[0]));
     if (!file.startsWith(DOCS) || !fs.existsSync(file)) { res.writeHead(404); return res.end(); }
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(file)] || 'text/plain' });
     res.end(fs.readFileSync(file));
