@@ -125,7 +125,7 @@ function countPassed(before, after, id) {
   return passed;
 }
 
-// "Ben Magid" -> "Ben M." when full names are switched off.
+// "Avery Testwell" -> "Avery T." when full names are switched off.
 function displayName(name, fullNames) {
   var text = String(name || '').trim();
   if (fullNames) return text;

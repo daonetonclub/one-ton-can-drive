@@ -8,6 +8,9 @@ const assert = require('node:assert/strict');
 
 const URL_ = process.env.WEBAPP_URL;
 const skip = !URL_ && 'set WEBAPP_URL to run the live tests';
+// Tests that make donations only run against the fake roster. Once real
+// students are in the Sheet they would log cans under real names.
+const writes = skip || (!process.env.FAKE_ROSTER && 'set FAKE_ROSTER=1 (fake roster only) to run tests that log donations');
 
 async function call(body) {
   // text/plain, as the browser will send it, to avoid the CORS trap.
@@ -24,7 +27,7 @@ test('the roster response contains no emails', { skip }, async () => {
   assert.doesNotMatch(JSON.stringify(r), /@/);
 });
 
-test('51 cans is refused', { skip }, async () => {
+test('51 cans is refused', { skip: writes }, async () => {
   const r = await call({ action: 'donate', person: 'S001', cans: 51 });
   assert.equal(r.ok, false);
   assert.equal(r.error, 'too_many');
@@ -35,7 +38,7 @@ test('an unknown person is refused', { skip }, async () => {
   assert.equal(r.error, 'unknown_person');
 });
 
-test('20 donations at the same moment make exactly 20 rows', { skip, timeout: 300000 }, async () => {
+test('20 donations at the same moment make exactly 20 rows', { skip: writes, timeout: 300000 }, async () => {
   const before = await call({ action: 'leaderboard' });
   const ids = [];
   for (let i = 1; i <= 16; i++) ids.push('S' + String(i).padStart(3, '0'));
@@ -48,7 +51,7 @@ test('20 donations at the same moment make exactly 20 rows', { skip, timeout: 30
   assert.equal(saved, 20, 'every donation saved');
 });
 
-test('the same one-time code sent twice makes one row, not two', { skip, timeout: 120000 }, async () => {
+test('the same one-time code sent twice makes one row, not two', { skip: writes, timeout: 120000 }, async () => {
   const before = await call({ action: 'leaderboard' });
   const request = 'livetest-' + Date.now();
   const first = await call({ action: 'donate', person: 'S010', cans: 2, request });

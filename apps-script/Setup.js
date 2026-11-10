@@ -133,6 +133,69 @@ function fixConfigCells() {
   CacheService.getScriptCache().remove(CACHE_KEY);
 }
 
+// Phase 5, step 1. Moves the fake test rows (donations, roster, contests)
+// into _archive_test_* tabs and empties them from the live tabs. Nothing is
+// deleted. Refuses to run if the Roster holds anyone who isn't a fake
+// @example.com person, so it can never archive real students.
+function archiveTestData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var roster = tab(TAB.roster);
+  var real = bodyRows(roster).filter(function (row) {
+    return row[0] !== '' && !/@example\.com$/i.test(String(row[4]).trim());
+  });
+  if (real.length) throw new Error('Stopped: the Roster has ' + real.length + ' rows that are not fake test people.');
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    [TAB.donations, TAB.roster, TAB.contests].forEach(function (name) {
+      var live = tab(name);
+      var rows = bodyRows(live).filter(function (row) {
+        return row.slice(0, 7).some(function (cell) { return cell !== ''; });
+      });
+      var archiveName = '_archive_test_' + name.toLowerCase();
+      var archive = ss.getSheetByName(archiveName) || ss.insertSheet(archiveName);
+      if (archive.getLastRow() === 0) {
+        archive.getRange(1, 1, 1, live.getLastColumn()).setValues(live.getRange(1, 1, 1, live.getLastColumn()).getValues());
+      }
+      if (rows.length) {
+        archive.getRange(archive.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+        var body = live.getRange(2, 1, live.getMaxRows() - 1, live.getMaxColumns());
+        body.clearDataValidations();
+        body.clearContent();
+      }
+      console.log(name + ': moved ' + rows.length + ' rows to ' + archiveName + '.');
+    });
+    SpreadsheetApp.flush();
+  } finally {
+    lock.releaseLock();
+  }
+  CacheService.getScriptCache().remove(CACHE_KEY);
+}
+
+// Phase 5, step 3. Reads the registrar's export from a tab whose name starts
+// with "_import_registrar" and writes it into the empty Roster. Logs counts
+// and row-numbered problems only, never names or emails. Refuses to run if
+// the Roster isn't empty or if the file has problems.
+function importRoster() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var source = ss.getSheets().filter(function (sh) { return /^_import_registrar/.test(sh.getName()); })[0];
+  if (!source) throw new Error('Stopped: no tab named _import_registrar... Import the CSV first.');
+  var roster = tab(TAB.roster);
+  if (bodyRows(roster).some(function (row) { return row[0] !== ''; })) {
+    throw new Error('Stopped: the Roster is not empty. Run archiveTestData first.');
+  }
+  var result = rosterFromRegistrar(source.getDataRange().getValues());
+  if (result.problems.length) {
+    result.problems.forEach(function (p) { console.log(p); });
+    throw new Error('Stopped: ' + result.problems.length + ' problems in the file (listed above). Nothing was written.');
+  }
+  roster.getRange(2, 1, result.rows.length, ROSTER_COLUMNS.length).setValues(result.rows);
+  CacheService.getScriptCache().remove(CACHE_KEY);
+  console.log('Loaded ' + result.counts.students + ' students in ' + result.counts.advisories +
+    ' advisories. By grade: ' + JSON.stringify(result.counts.byGrade));
+}
+
 function makeTab(ss, name, columns) {
   var sheet = ss.getSheetByName(name) || ss.insertSheet(name);
   if (sheet.getLastRow() === 0) {

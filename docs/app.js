@@ -336,6 +336,8 @@
     Promise.all([api({ action: 'roster' }), api({ action: 'leaderboard' })])
       .then(function (replies) {
         roster = replies[0].people || [];
+        // No staff on the roster yet: hide the faculty button until there are.
+        document.querySelector('.faculty-link').hidden = !roster.some(function (p) { return !isStudent(p); });
         if (!applyStatus(replies[1])) return;
         var remembered = loadMe();
         var still = remembered && roster.filter(function (p) { return p.id === remembered.id; })[0];

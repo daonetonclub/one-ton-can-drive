@@ -117,9 +117,9 @@ test('countPassed: people level with or ahead of you before, behind you after', 
 });
 
 test('names show as first name and last initial unless switched on', () => {
-  assert.equal(S.displayName('Ben Magid', false), 'Ben M.');
+  assert.equal(S.displayName('Avery Testwell', false), 'Avery T.');
   assert.equal(S.displayName('Mary Ann de la Cruz', false), 'Mary C.');
-  assert.equal(S.displayName('Ben Magid', true), 'Ben Magid');
+  assert.equal(S.displayName('Avery Testwell', true), 'Avery Testwell');
 });
 
 test('pace line and everyone-brings-five', () => {
