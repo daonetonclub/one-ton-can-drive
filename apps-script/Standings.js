@@ -171,6 +171,18 @@ function addDays(day, n) {
   return d.toISOString().slice(0, 10);
 }
 
+// Bin locations from the Config cell: one bin per line, with an optional
+// detail after " - ". Blank lines are ignored.
+function parseBins(text) {
+  return String(text || '').split(/\r?\n/).map(function (line) { return line.trim(); })
+    .filter(function (line) { return line; })
+    .map(function (line) {
+      var at = line.indexOf(' - ');
+      return at === -1 ? { place: line, detail: '' }
+        : { place: line.slice(0, at).trim(), detail: line.slice(at + 3).trim() };
+    });
+}
+
 // Everything the leaderboard page shows, from the log alone. Never stores a
 // total. Names go through the full-names switch; emails are never included.
 //   config: { startDay, endDay, goalLb, milestones, poundsPerCan, fullNames }
@@ -203,6 +215,8 @@ function buildLeaderboard(donations, roster, config, contests, today) {
     goalLb: config.goalLb,
     poundsPerCan: config.poundsPerCan,
     milestones: config.milestones,
+    bins: parseBins(config.binLocations),
+    foodBank: config.foodBank || '',
     startDay: config.startDay,
     endDay: config.endDay,
     totalLb: lb(school.tonCans),
@@ -277,5 +291,5 @@ if (typeof module !== 'undefined') {
   module.exports = { assignRanks: assignRanks, standings: standings, topWithTies: topWithTies,
     moveUp: moveUp, countPassed: countPassed, displayName: displayName, pace: pace,
     perStudent: perStudent, daysBetween: daysBetween, findRow: findRow, addDays: addDays,
-    buildLeaderboard: buildLeaderboard, personReport: personReport };
+    buildLeaderboard: buildLeaderboard, personReport: personReport, parseBins: parseBins };
 }

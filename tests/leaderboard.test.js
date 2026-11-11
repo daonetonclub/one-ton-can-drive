@@ -137,3 +137,15 @@ test('pounds per can changes pounds, not ranks', () => {
   assert.equal(heavy.totalLb, 49);   // 58 x 0.85 = 49.3
   assert.deepEqual(heavy.grades.map(g => g.rank), [1, 2, 3, 4]);
 });
+
+test('bins come from the Config cell, one per line, with an optional detail', () => {
+  assert.deepEqual(S.parseBins('Library entrance - by the front desk\n\n  Gym lobby  \r\nCafeteria - near the doors - left side\n'), [
+    { place: 'Library entrance', detail: 'by the front desk' },
+    { place: 'Gym lobby', detail: '' },
+    { place: 'Cafeteria', detail: 'near the doors - left side' }
+  ]);
+  assert.deepEqual(S.parseBins(''), []);
+  const withBins = S.buildLeaderboard(donations, roster, Object.assign({}, config, { binLocations: 'Gym lobby', foodBank: 'Test Food Bank' }), [], TODAY);
+  assert.deepEqual([withBins.bins, withBins.foodBank], [[{ place: 'Gym lobby', detail: '' }], 'Test Food Bank']);
+  assert.deepEqual([lb.bins, lb.foodBank], [[], '']);
+});

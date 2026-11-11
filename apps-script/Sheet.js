@@ -70,7 +70,8 @@ function readConfig() {
     poundsPerCan: Number(config.pounds_per_can) || 1,
     fullNames: config.full_names === true || String(config.full_names).toUpperCase() === 'TRUE',
     firstEmail: config.first_email === true || String(config.first_email).toUpperCase() === 'TRUE',
-    binLocations: String(config.bin_locations || '')
+    binLocations: String(config.bin_locations || ''),
+    foodBank: String(config.food_bank || '').trim()
   };
 }
 

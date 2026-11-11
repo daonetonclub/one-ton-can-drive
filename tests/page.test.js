@@ -34,7 +34,8 @@ function fakeServer(options) {
     const body = JSON.parse(route.request().postData() || '{}');
     let reply;
     if (body.action === 'roster') reply = { ok: true, people: ROSTER };
-    else if (body.action === 'leaderboard') reply = { ok: true, startDay: o.startDay, endDay: o.endDay, totalLb: 1840, poundsPerCan: 1 };
+    else if (body.action === 'leaderboard') reply = { ok: true, startDay: o.startDay, endDay: o.endDay, totalLb: 1840, poundsPerCan: 1,
+                                                    bins: o.bins || [], foodBank: o.foodBank || '', contests: [] };
     else if (body.action === 'donate') {
       state.saves.push(body);
       if (o.delay) await new Promise(r => setTimeout(r, o.delay));
@@ -341,4 +342,50 @@ test('no donation screen scrolls sideways at phone width', async () => {
   await pickAvery(page);
   assert.equal(await fits(), true, 'cans');
   await context.close();
+});
+
+// How it works page
+
+async function openHow(options) {
+  const fake = fakeServer(options);
+  const context = await browser.newContext({ viewport: { width: 360, height: 780 } });
+  const page = await context.newPage();
+  await page.route('https://script.google.com/**', fake.handle);
+  await page.route('https://fonts.googleapis.com/**', r => r.abort());
+  await page.route('https://fonts.gstatic.com/**', r => r.abort());
+  await page.goto(base + 'how.html');
+  return { page, context };
+}
+
+test('How it works: four steps, and "coming soon" until bins and the food bank are set', async () => {
+  const { page, context } = await openHow();
+  assert.deepEqual(await page.locator('.howto-step h4').allTextContents(),
+    ['Bring cans to school', 'Scan the QR code', 'Log what you brought', 'Watch the ton fill up']);
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator('.bin-tbd').textContent(), 'Bin locations are coming soon.');
+  assert.match(await page.locator('#food-bank').textContent(), /we will post the name here once we do/);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+  await context.close();
+});
+
+test('How it works: bins and the food bank from the Sheet', async () => {
+  const { page, context } = await openHow({ bins: [{ place: 'Library entrance', detail: 'by the front desk' }, { place: 'Gym lobby', detail: '' }],
+                                            foodBank: 'Test Food Bank' });
+  await page.locator('.bin-row').first().waitFor();
+  assert.deepEqual(await page.locator('.bin-row .place').allTextContents(), ['Library entrance', 'Gym lobby']);
+  assert.deepEqual(await page.locator('.bin-row .detail').allTextContents(), ['by the front desk']);
+  assert.equal(await page.locator('#food-bank').textContent(), 'Where it goes: every can goes to Test Food Bank, which gets food to families in our area.');
+  await context.close();
+});
+
+test('every page links to How it works, and the home page says "New here?"', async () => {
+  for (const file of ['index.html', 'donate.html', 'leaderboard.html', 'how.html']) {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await page.route('https://script.google.com/**', r => r.abort());
+    await page.goto(base + file);
+    assert.equal(await page.locator('.site-nav a[href="how.html"]').count(), 1, file);
+    if (file === 'index.html') assert.equal(await page.locator('.howto-link').getAttribute('href'), 'how.html');
+    await context.close();
+  }
 });

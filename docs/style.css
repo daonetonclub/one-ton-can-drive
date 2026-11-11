@@ -53,7 +53,8 @@ p { margin: 0 0 8px; }
   font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; letter-spacing: -0.2px;
   color: var(--cream); text-decoration: none; white-space: nowrap;
 }
-.site-nav .links { display: flex; gap: 4px; }
+.site-nav .links { display: flex; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.site-nav .links::-webkit-scrollbar { display: none; }
 .site-nav .links a {
   color: rgba(248, 245, 236, 0.85); padding: 6px 14px; border-radius: 999px;
   font-size: 14px; font-weight: 500; text-decoration: none; white-space: nowrap;
@@ -65,6 +66,10 @@ p { margin: 0 0 8px; }
   .site-nav .brand { font-size: 15px; }
   .site-nav .brand-rest { display: none; }
   .site-nav .links a { padding: 6px 10px; font-size: 13px; }
+}
+@media (max-width: 380px) {
+  .site-nav .links { gap: 0; }
+  .site-nav .links a { padding: 6px 8px; }
 }
 
 .page { max-width: 640px; margin: 0 auto; padding: 24px 20px 72px; }
@@ -105,6 +110,24 @@ p { margin: 0 0 8px; }
   .landing-hero h1 { font-size: 38px; }
   .landing-hero p { font-size: 15.5px; }
 }
+
+/* ---- How it works (mockup) ---- */
+.howto-link { color: var(--ink-muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+.howto-link:hover { color: var(--cav); }
+.howto-steps { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.howto-step { background: white; border: 1.5px solid var(--border); border-radius: 12px; padding: 18px 20px; display: flex; gap: 16px; align-items: flex-start; box-shadow: var(--shadow); }
+.howto-step .n { width: 34px; height: 34px; border-radius: 50%; background: var(--cav); color: white; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 600; flex-shrink: 0; }
+.howto-step h4 { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; margin: 0 0 2px; }
+.howto-step p { font-size: 14px; color: var(--ink-soft); margin: 0; }
+.box-note { display: flex; gap: 12px; align-items: flex-start; background: var(--gold-light); border: 1.5px solid var(--gold); border-radius: 12px; padding: 14px 16px; font-size: 14px; color: var(--ink-soft); margin-bottom: 28px; }
+.box-note strong { color: var(--gold-dark); }
+.section-title { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 600; color: var(--cav); margin: 0 0 12px; }
+.bin-row { display: flex; gap: 12px; align-items: flex-start; background: white; border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); margin-bottom: 8px; }
+.bin-row .pin { font-size: 17px; }
+.bin-row .place { font-weight: 600; font-size: 15px; }
+.bin-row .detail { font-size: 13px; color: var(--ink-muted); margin-top: 1px; }
+.bin-tbd { background: var(--cream); border: 1.5px dashed var(--border); border-radius: 10px; padding: 16px 18px; font-size: 14px; color: var(--ink-muted); margin-bottom: 20px; }
+#bin-list { margin-bottom: 20px; }
 
 /* ---- Donation flow ---- */
 .donate-header {

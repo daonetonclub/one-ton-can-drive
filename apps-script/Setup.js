@@ -57,7 +57,7 @@ function setupSheet() {
 
   var config = makeTab(ss, TAB.config, ['key', 'value', 'what it does']);
   if (config.getLastRow() === 1) {
-    config.getRange(2, 1, 8, 3).setValues([
+    config.getRange(2, 1, 9, 3).setValues([
       ['start_date', new Date(), 'First day donations are accepted. TESTING: set to the setup day. Change to 2027-01-19 in Phase 6.'],
       ['end_date', new Date(2027, 2, 4), 'Last day donations are accepted. Change this cell to extend the drive.'],
       ['goal_lb', 2000, 'The goal, in pounds.'],
@@ -65,7 +65,8 @@ function setupSheet() {
       ['pounds_per_can', 1, 'Correct after the food bank weighs the first pickup.'],
       ['full_names', false, 'FALSE shows "Ben M." Set TRUE only after written approval.'],
       ['first_email', false, 'TRUE sends the one-time first-donation email. Only after the technology office approves.'],
-      ['bin_locations', '', 'To be decided with facilities in December.']
+      ['bin_locations', '', 'One bin per line (Ctrl+Enter for a new line). Detail after a dash: Library entrance - by the front desk'],
+      ['food_bank', '', 'The food bank partner\'s name, shown on How it works. Blank until the club picks one.']
     ]);
     config.getRange('B2:B3').setNumberFormat('yyyy-mm-dd');
     config.getRange('B5').setNumberFormat('@').setValue('500, 1000, 1500, 2000');
