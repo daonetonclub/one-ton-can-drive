@@ -31,7 +31,10 @@ function fakeServer(options) {
   const o = Object.assign({ startDay: day(-1), endDay: day(30), failSaves: 0, delay: 0 }, options);
   const state = { saves: [], codes: [] };
   async function handle(route) {
-    const body = JSON.parse(route.request().postData() || '{}');
+    // The pages send everything as GET addresses (docs/config.js), never a POST body.
+    assert.equal(route.request().method(), 'GET');
+    const body = Object.fromEntries(new URL(route.request().url()).searchParams);
+    if (body.cans !== undefined) body.cans = Number(body.cans);
     let reply;
     if (body.action === 'roster') reply = { ok: true, people: ROSTER };
     else if (body.action === 'leaderboard') reply = { ok: true, startDay: o.startDay, endDay: o.endDay, totalLb: 1840, poundsPerCan: 1,
@@ -388,4 +391,28 @@ test('every page links to How it works, and the home page says "New here?"', asy
     if (file === 'index.html') assert.equal(await page.locator('.howto-link').getAttribute('href'), 'how.html');
     await context.close();
   }
+});
+
+test('a garbled reply to a save says "try again", and the retry reuses the same code', async () => {
+  const { page, fake, context } = await open();
+  let first = true;
+  await page.route('https://script.google.com/**', async route => {
+    const q = Object.fromEntries(new URL(route.request().url()).searchParams);
+    if (q.action === 'donate' && first) {
+      first = false;
+      fake.state.saves.push(q);
+      return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ ok: false, error: 'bad_request', message: 'Unknown action.' }) });
+    }
+    return fake.handle(route);
+  });
+  await pickAvery(page);
+  await page.fill('#cans', '2');
+  await page.click('#submit');
+  await page.locator('#cans-message').waitFor();
+  assert.equal(await page.locator('#cans-message').textContent(), "That didn't save. Your cans were not counted yet. Try again.");
+  await page.click('#submit');
+  await page.locator('#screen-done').waitFor();
+  assert.equal(fake.state.saves.length, 2);
+  assert.equal(fake.state.saves[0].request, fake.state.saves[1].request, 'same one-time code, so no second row');
+  await context.close();
 });

@@ -11,9 +11,7 @@
     return e;
   }
 
-  fetch(window.ONE_TON.api, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
-                              body: JSON.stringify({ action: 'leaderboard' }), redirect: 'follow' })
-    .then(function (res) { return res.json(); })
+  window.ONE_TON.call({ action: 'leaderboard' })
     .then(function (data) {
       if (!data.ok) return;
       if (data.foodBank) {

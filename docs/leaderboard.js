@@ -17,11 +17,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var fmt = function (n) { return Number(n).toLocaleString('en-US'); };
 
-  function api(body) {
-    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify(body), redirect: 'follow' })
-      .then(function (res) { return res.json(); });
-  }
+  function api(params) { return window.ONE_TON.call(params); }
 
   function todayKey() {
     var d = new Date();

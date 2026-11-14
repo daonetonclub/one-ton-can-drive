@@ -74,7 +74,7 @@ async function open(options, viewport, remembered) {
     await page.addInitScript(me => localStorage.setItem('oneTon.me', JSON.stringify(me)), remembered);
   }
   await page.route('https://script.google.com/**', r => r.fulfill({ contentType: 'application/json',
-    body: JSON.stringify(answer(JSON.parse(r.request().postData() || '{}'), options)) }));
+    body: JSON.stringify(answer(Object.fromEntries(new URL(r.request().url()).searchParams), options)) }));
   await page.route('https://fonts.googleapis.com/**', r => r.abort());
   await page.route('https://fonts.gstatic.com/**', r => r.abort());
   await page.goto(base + 'leaderboard.html');
@@ -251,7 +251,7 @@ async function openTv(options) {
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
   const page = await context.newPage();
   await page.route('https://script.google.com/**', r => r.fulfill({ contentType: 'application/json',
-    body: JSON.stringify(answer(JSON.parse(r.request().postData() || '{}'), options)) }));
+    body: JSON.stringify(answer(Object.fromEntries(new URL(r.request().url()).searchParams), options)) }));
   await page.route('https://fonts.googleapis.com/**', r => r.abort());
   await page.route('https://fonts.gstatic.com/**', r => r.abort());
   await page.goto(base + 'leaderboard.html?tv=1');

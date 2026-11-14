@@ -21,12 +21,8 @@
 
   // ---- Talking to the server ----
 
-  // text/plain on purpose: JSON POSTs to Apps Script fail on CORS.
-  function api(body) {
-    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify(body), redirect: 'follow' })
-      .then(function (res) { return res.json(); });
-  }
+  // All requests go through ONE_TON.call in config.js (plain GET addresses).
+  function api(params) { return window.ONE_TON.call(params); }
 
   // ---- Remembering who you are (this phone only) ----
 
@@ -242,7 +238,7 @@
           forgetMe();
           me = null;
           showGrades();
-        } else if (r.error === 'busy' || r.error === 'server') {
+        } else if (r.error === 'busy' || r.error === 'server' || r.error === 'bad_request') {
           showMessage(DIDNT_SAVE);
         } else {
           pending = null;
